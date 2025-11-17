@@ -1,9 +1,10 @@
 """FPL player statistics - calculated metrics and analysis"""
+
 from langchain_core.tools import tool
 from typing import Any, Dict, Optional, List
 import requests
-from .client import bootstrap_static, DEFAULT_TIMEOUT
-from fpl_rules import FPL_RULES_KNOWLEDGE, FPL_SEARCHABLE_RULES
+from .api_client import bootstrap_static, DEFAULT_TIMEOUT
+from .fpl_rules import FPL_RULES_KNOWLEDGE, FPL_SEARCHABLE_RULES
 
 @tool
 def get_all_players_with_stats(
