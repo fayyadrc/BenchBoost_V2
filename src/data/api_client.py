@@ -2,7 +2,10 @@
 from langchain_core.tools import tool
 from typing import Any, Dict, Optional
 import requests
-from .cache import latest_data # Import from cache
+
+# Module-level cache for most-recent fetched public data. Kept here to avoid
+# circular imports between `api_client` and `cache`.
+latest_data: Dict[str, Any] = {}
  
 BASE_URL = "https://fantasy.premierleague.com/api"
 DEFAULT_TIMEOUT = 10.0

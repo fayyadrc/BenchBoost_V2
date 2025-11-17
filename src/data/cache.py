@@ -3,10 +3,10 @@
 from typing import Any, Dict, Optional
 from langchain.tools import tool
 import requests
-from .client import bootstrap_static, fixtures, DEFAULT_TIMEOUT
+from .api_client import bootstrap_static, fixtures, DEFAULT_TIMEOUT
  
 # Module-level cache: populated when `fetch_public_data` is called with persist=True.
-latest_data: Dict[str, Any] = {}
+# Note: latest_data is stored in `api_client.latest_data` to avoid a circular import
  
 # Core game data dictionaries - organized for easy access
 core_data: Dict[str, Any] = {
@@ -21,6 +21,7 @@ core_data: Dict[str, Any] = {
 def load_core_game_data(
     session: Optional[requests.Session] = None, timeout: float = DEFAULT_TIMEOUT
 ) -> Dict[str, Any]:
+
     """
     Load all core FPL game data into organized dictionaries.
  
