@@ -1,17 +1,16 @@
 """
-LiveFPL scraper - scrapes fantasy football data from plan.livefpl.net
-
-This module scrapes:
-- Differentials (low-owned players you have)
-- Threats (high-owned players you don't have)
-- Captain performance info
-- Gameweek summary with rank movement
-- Individual player points
+    LiveFPL scraper - scrapes fantasy football data from plan.livefpl.net
+    This module scrapes:
+    - Differentials (low-owned players you have)
+    - Threats (high-owned players you don't have)
+    - Captain performance info
+    - Gameweek summary with rank movement
+    - Individual player points
 """
 import json
 from typing import Dict, Any, Optional
 from playwright.sync_api import Playwright, sync_playwright, TimeoutError
-
+from langchain.tools import tool
 
 def extract_player_details(card) -> Dict[str, Any]:
     """Extract player name, points, and ownership from a player card."""
@@ -81,7 +80,6 @@ def extract_gameweek_summary(page) -> Dict[str, Any]:
     except Exception as e:
         return {"error": str(e)}
 
-
 def extract_team_players(page) -> list:
     """Extract individual player points from your team."""
     try:
@@ -117,10 +115,11 @@ def extract_team_players(page) -> list:
     except Exception as e:
         return {"error": str(e)}
 
-
+@tool
 def scrape_livefpl_data(
     entry_id: int, headless: bool = True, timeout: int = 180000
 ) -> Dict[str, Any]:
+
     """
     Scrape FPL data from plan.livefpl.net for a given entry ID.
 
@@ -174,7 +173,7 @@ def scrape_livefpl_data(
             player_data = extract_player_details(card)
             differentials.append(player_data)
 
-        # Extract threats
+        
         threats = []
         threat_cards = page.locator("#danger_summary div.player-details").all()
         for card in threat_cards:
@@ -184,7 +183,7 @@ def scrape_livefpl_data(
         team_players = extract_team_players(page)
         gameweek_summary = extract_gameweek_summary(page)
 
-        # Extract captain info
+        
         captain_info = {}
         try:
             cap_name_elem = page.locator("#cap-name")
@@ -210,7 +209,6 @@ def scrape_livefpl_data(
 
         return output_data
 
-
 def main():
     """CLI interface for the scraper."""
     import sys
@@ -218,11 +216,10 @@ def main():
     if len(sys.argv) > 1:
         entry_id = int(sys.argv[1])
     else:
-        entry_id = 1605977  # Default entry ID
+        entry_id = 1605977  #fayyad manager id, will later be get request from frontend
 
     data = scrape_livefpl_data(entry_id)
     print(json.dumps(data, indent=2, ensure_ascii=False))
-
 
 if __name__ == "__main__":
     main()
