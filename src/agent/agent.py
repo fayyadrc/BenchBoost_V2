@@ -1,10 +1,11 @@
 import os
 from langchain_google_genai import ChatGoogleGenerativeAI
-from langchain.agents import create_agent as create_langchain_agent
+# CHANGED: Import from langchain_classic.agents
+from langchain_classic.agents import create_tool_calling_agent, AgentExecutor 
 from langchain_core.messages import AIMessage, HumanMessage
 
 from .tools import all_tools
-from .prompt import SYSTEM_PROMPT
+from .prompt import prompt 
 from .memory import save_chat_history
 
 def create_agent():
@@ -12,16 +13,24 @@ def create_agent():
 
     print("Initializing agent...")
     llm = ChatGoogleGenerativeAI(
-        model = "gemini-1.5-flash",
+        model = "gemini-2.5-flash",
         temperature = 0,
-        convert_system_message_to_human=True # Helps with some models
+        # convert_system_message_to_human=True # This is often not needed
     )
 
-    #create agent
-    agent_executor = create_langchain_agent(llm, tools=all_tools, system_prompt=SYSTEM_PROMPT)
+    # 1. Create the agent runnable
+    # This now correctly uses your modern prompt
+    agent_runnable = create_tool_calling_agent(llm, tools=all_tools, prompt=prompt)
+
+    # 2. Create the AgentExecutor
+    agent_executor = AgentExecutor(
+        agent=agent_runnable, 
+        tools=all_tools, 
+        verbose=True, # Good for debugging
+        handle_parsing_errors=True # Helps with reliability
+    )
 
     print("Agent initialized successfully")
-
     return agent_executor
 
 def run_chat_loop(agent_executor, chat_history):
@@ -45,7 +54,8 @@ def run_chat_loop(agent_executor, chat_history):
                 print("✨ Memory cleared! Starting fresh.")
                 continue
 
-            #invoke the agent
+            # Invoke the agent
+            # The AgentExecutor will automatically handle the 'agent_scratchpad'
             result = agent_executor.invoke({
                 "input": query,
                 "chat_history": chat_history
@@ -53,7 +63,7 @@ def run_chat_loop(agent_executor, chat_history):
 
             response = result.get("output", "I'm sorry, I ran into an error.")
 
-            #update chat history
+            # Update chat history
             chat_history.append(HumanMessage(content=query))
             chat_history.append(AIMessage(content=response))
             
@@ -72,4 +82,3 @@ def run_chat_loop(agent_executor, chat_history):
             print(f"\nAn error occurred: {e}\n")
             print(traceback.format_exc())
             print("Let's try that again.")
-
