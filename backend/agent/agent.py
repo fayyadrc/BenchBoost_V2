@@ -15,8 +15,7 @@ def create_agent():
     llm = ChatGoogleGenerativeAI(
         model = "gemini-2.5-flash",
         temperature = 0,
-        # convert_system_message_to_human=True # This is often not needed
-    )
+        )
 
     # 1. Create the agent runnable
     # This now correctly uses your modern prompt

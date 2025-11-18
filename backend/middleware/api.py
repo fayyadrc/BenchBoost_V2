@@ -1,7 +1,8 @@
 import os
 import asyncio
 import logging
-from typing import Optional, List, Any, Dict
+import re
+from typing import Optional, List, Any, Dict, Iterable
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
@@ -74,9 +75,67 @@ def _get_chat_history(session_id: str) -> List[Any]:
     return hist
 
 # Async wrapper to run agent.invoke in a worker thread (sync API)
+def _extract_status_code(exc: Exception) -> Optional[int]:
+    """Try to pull an HTTP-ish status code off the exception."""
+    for attr in ("status", "status_code", "code"):
+        value = getattr(exc, attr, None)
+        if isinstance(value, int):
+            return value
+        if isinstance(value, str) and value.isdigit():
+            return int(value)
+    match = re.search(r"\b([45]\d{2})\b", str(exc))
+    if match:
+        return int(match.group(1))
+    return None
+
+
+def _is_model_overloaded(exc: Exception) -> bool:
+    msg = str(exc).lower()
+    return "model is overloaded" in msg or _extract_status_code(exc) == 503
+
+
+def _coerce_to_text(payload: Any) -> str:
+    """Flatten structured provider output into a plain string for clients."""
+    if payload is None:
+        return ""
+    if isinstance(payload, str):
+        return payload
+    if isinstance(payload, (bytes, bytearray)):
+        return payload.decode("utf-8", errors="replace")
+    if isinstance(payload, dict):
+        if "text" in payload:
+            return _coerce_to_text(payload.get("text"))
+        if "content" in payload:
+            return _coerce_to_text(payload.get("content"))
+        return str(payload)
+    if isinstance(payload, Iterable):
+        parts: List[str] = []
+        for item in payload:
+            text = _coerce_to_text(item)
+            if text:
+                parts.append(text)
+        return "\n".join(parts)
+    return str(payload)
+
+
 async def _invoke_agent(agent: Any, query: str, chat_history: List[Any]) -> Any:
     payload = {"input": query, "chat_history": chat_history}
-    return await asyncio.to_thread(agent.invoke, payload)
+    delay = 2.0
+    max_attempts = 3
+    for attempt in range(1, max_attempts + 1):
+        try:
+            return await asyncio.to_thread(agent.invoke, payload)
+        except Exception as exc:
+            if attempt == max_attempts or not _is_model_overloaded(exc):
+                raise
+            logger.warning(
+                "Agent invoke attempt %s/%s failed with potential overload. Retrying in %.1fs...",
+                attempt,
+                max_attempts,
+                delay,
+            )
+            await asyncio.sleep(delay)
+            delay *= 2
 
 @app.post("/api/query", response_model=QueryResponse)
 async def query_endpoint(req: QueryRequest):
@@ -96,14 +155,20 @@ async def query_endpoint(req: QueryRequest):
         result = await _invoke_agent(agent, req.query, chat_history)
 
         # Extract response and update chat history
-        response: str = result.get("output", str(result))
+        response_raw = result.get("output") if isinstance(result, dict) else result
+        response_text = _coerce_to_text(response_raw if response_raw is not None else result)
         chat_history.append(HumanMessage(content=req.query))
-        chat_history.append(AIMessage(content=response))
+        chat_history.append(AIMessage(content=response_text))
 
-        return QueryResponse(answer=response, raw_output=None)
+        return QueryResponse(answer=response_text, raw_output=None)
     except Exception as e:
         logger.exception("Agent run failed")
-        raise HTTPException(status_code=500, detail=str(e))
+        if _is_model_overloaded(e):
+            raise HTTPException(
+                status_code=503,
+                detail="The language model provider is temporarily overloaded. Please try again shortly.",
+            ) from e
+        raise HTTPException(status_code=500, detail="Agent failed to process the request.") from e
 
 @app.get("/api/health")
 async def health():
