@@ -18,3 +18,4 @@ if [ $? -ne 0 ]; then
   echo "Application failed. Exiting."
   exit 1
 fi
+
