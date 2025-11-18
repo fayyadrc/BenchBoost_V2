@@ -1,5 +1,7 @@
 
+langchain-cli
 langchain
+langchain-classic
 langchain-google-genai
 fastapi
 uvicorn[standard]
