@@ -90,8 +90,8 @@ const FPLChatbot = () => {
               transition={{ delay: 0.2, duration: 0.5 }}
             >
               <div>
-                <h1 className="text-3xl font-bold text-white">Good morning,</h1>
-                <p className="text-3xl font-bold text-white/80">Manager</p>
+                <h1 className="text-3xl font-bold text-white">Greetings,</h1>
+                <p className="text-3xl font-bold text-white/80">manager</p>
               </div>
             </motion.div>
 
@@ -225,7 +225,7 @@ const FPLChatbot = () => {
         >
           <div className="relative">
             <div className="bg-black/20 border border-white/10 rounded-2xl shadow-lg backdrop-blur-sm focus-within:ring-2 focus-within:ring-white/30 focus-within:border-white/30 transition-all duration-300">
-              <div className="flex items-end gap-3 p-4">
+              <div className="flex items-center gap-3 p-4">
                 <textarea
                   className="flex-1 bg-transparent border-none outline-none resize-none text-white placeholder-white/40 text-sm font-medium max-h-32"
                   value={input}
