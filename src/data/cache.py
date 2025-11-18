@@ -49,13 +49,17 @@ def load_core_game_data(
         # Skip players who transferred out of Premier League
         if player.get("status") == "u":
             continue
- 
+
         player_id = player.get("id")
-        player_name = player.get("web_name", "")
- 
+        web_name = player.get("web_name", "")
+        full_name = f"{player.get('first_name', '')} {player.get('second_name', '')}".strip()
+
         core_data["players"][player_id] = player
-        if player_name:
-            core_data["players_by_name"][player_name.lower()] = player
+        if web_name:
+            core_data["players_by_name"][web_name.lower()] = player
+        if full_name:
+            # Also map full name to enable queries like "Erling Haaland"
+            core_data["players_by_name"][full_name.lower()] = player
  
     # Organize teams by ID and name
     core_data["teams"] = {}
