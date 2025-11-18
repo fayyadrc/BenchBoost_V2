@@ -1,10 +1,10 @@
 import os
 from langchain_google_genai import ChatGoogleGenerativeAI
-from langchain_core.agents import create_tool_calling_agent, AgentExecutor
+from langchain.agents import create_agent as create_langchain_agent
 from langchain_core.messages import AIMessage, HumanMessage
 
 from .tools import all_tools
-from .prompt import prompt
+from .prompt import SYSTEM_PROMPT
 from .memory import save_chat_history
 
 def create_agent():
@@ -12,20 +12,13 @@ def create_agent():
 
     print("Initializing agent...")
     llm = ChatGoogleGenerativeAI(
-        model = "gemini-2.5-flash",
+        model = "gemini-1.5-flash",
         temperature = 0,
         convert_system_message_to_human=True # Helps with some models
     )
 
     #create agent
-    agent = create_tool_calling_agent(llm, all_tools, prompt)
-
-    agent_executor = AgentExecutor(
-        agent = agent,
-        tools = all_tools,
-        verbose= True,
-        handle_parsing_errors = True
-    )
+    agent_executor = create_langchain_agent(llm, tools=all_tools, system_prompt=SYSTEM_PROMPT)
 
     print("Agent initialized successfully")
 
