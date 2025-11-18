@@ -1,6 +1,5 @@
 """
 Main entry point for the BenchBoost FPL RAG Chatbot.
-
 This script does three things:
 1.  Loads the FPL data into the in-memory cache ("Pre-production").
 2.  Loads conversation history from previous sessions.
@@ -10,13 +9,11 @@ This script does three things:
 import os
 from dotenv import load_dotenv
 
-# Import our custom modules (relative to `src/` package root)
 from .agent.agent import create_agent, run_chat_loop
 from .agent.memory import load_chat_history, save_chat_history, get_conversation_summary
 from .data.cache import load_core_game_data
 
 def main():
-    # Load environment variables (like GOOGLE_API_KEY) from .env file
     load_dotenv()
     if not os.getenv("GOOGLE_API_KEY"):
         print("Error: GOOGLE_API_KEY not found. Please set it in a .env file.")

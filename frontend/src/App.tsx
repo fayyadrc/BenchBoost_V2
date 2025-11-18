@@ -1,6 +1,8 @@
 import React from 'react';
 import { Send, Users, TrendingUp, BarChart3, Target, Calendar, Zap, Loader } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import { ask, getOrCreateSessionId } from './api/client';
 
 type Message = {
@@ -71,64 +73,60 @@ const FPLChatbot = () => {
   };
 
   return (
-    <div className="min-h-screen bg-black text-white">
+    <div className="min-h-screen bg-transparent text-white font-sans">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex flex-col min-h-screen">
         {messages.length === 0 ? (
           <motion.div
-            className="flex-1 flex flex-col items-center justify-center text-center"
+            className="flex-1 flex flex-col"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
           >
-            <motion.div
-              initial={{ scale: 0.8, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
+            {/* Greeting */}
+            <motion.div 
+              className="mb-16"
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2, duration: 0.5 }}
             >
-              <div className="mb-8">
-                <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 shadow-lg mb-6">
-                  <Zap className="w-10 h-10 text-white" />
-                </div>
-                <h1 className="text-5xl sm:text-6xl font-bold text-white mb-4">
-                  FPL Manager
-                </h1>
-                <p className="text-lg text-white/60 font-medium">
-                  Your AI-powered Fantasy Premier League assistant
-                </p>
+              <div>
+                <h1 className="text-3xl font-bold text-white">Good morning,</h1>
+                <p className="text-3xl font-bold text-white/80">Manager</p>
               </div>
             </motion.div>
 
+            {/* Spacer to push suggestions down */}
+            <div className="flex-grow"></div>
+
+            {/* Suggestions */}
             {showSuggestions && (
               <motion.div
-                className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full max-w-2xl mt-12"
+                className="grid grid-cols-1 md:grid-cols-3 gap-4 w-full mb-8"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.4, duration: 0.5 }}
               >
                 <AnimatePresence>
-                  {suggestions.map((suggestion, idx) => (
+                  {suggestions.slice(0, 3).map((suggestion, idx) => (
                     <motion.div
                       key={idx}
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: 0.1 * idx, duration: 0.4 }}
-                      whileHover={{ y: -4, boxShadow: '0 20px 25px -5px rgba(255, 255, 255, 0.1)' }}
+                      whileHover={{ y: -4, boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)' }}
                       whileTap={{ scale: 0.98 }}
                       onClick={() => handleSuggestionClick(suggestion.text)}
                       className="group cursor-pointer"
                     >
-                      <div className="relative overflow-hidden rounded-2xl bg-white/5 border border-white/10 p-5 hover:border-white/30 hover:bg-white/10 transition-all duration-300 shadow-sm hover:shadow-lg backdrop-blur-sm">
-                        <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/0 to-white/0 group-hover:from-white/5 group-hover:via-white/5 group-hover:to-white/5 transition-all duration-300" />
-                        <div className="relative flex items-start gap-4">
-                          <div className="flex-shrink-0 mt-1">
+                      <div className="relative overflow-hidden rounded-2xl bg-black/20 border border-white/10 p-5 h-40 flex flex-col justify-between hover:border-white/30 hover:bg-black/30 transition-all duration-300 shadow-sm hover:shadow-lg backdrop-blur-sm">
+                        <div className="shrink-0">
                             <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-white/10 group-hover:bg-white/20 transition-all duration-300">
                               <suggestion.icon className="w-5 h-5 text-white" />
                             </div>
                           </div>
-                          <p className="text-sm font-medium text-white/80 group-hover:text-white transition-colors duration-300 line-clamp-2">
-                            {suggestion.text}
-                          </p>
-                        </div>
+                        <p className="text-md font-semibold text-white/90 group-hover:text-white transition-colors duration-300">
+                          {suggestion.text}
+                        </p>
                       </div>
                     </motion.div>
                   ))}
@@ -154,15 +152,40 @@ const FPLChatbot = () => {
                   className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
                 >
                   <div
-                    className={`max-w-xs lg:max-w-md xl:max-w-lg px-5 py-3 rounded-2xl ${
+                    className={`max-w-xs lg:max-w-md xl:max-w-lg px-4 py-2 rounded-xl ${
                       msg.role === 'user'
-                        ? 'bg-white/10 text-white border border-white/20 shadow-lg backdrop-blur-sm'
-                        : 'bg-white/5 text-white border border-white/10 shadow-md backdrop-blur-sm'
+                        ? 'bg-blue-600 text-white'
+                        : 'bg-black/20 text-white border border-white/10 backdrop-blur-sm'
                     }`}
                   >
-                    <p className="text-sm leading-relaxed whitespace-pre-wrap break-words">
-                      {msg.content}
-                    </p>
+                    {msg.role === 'assistant' ? (
+                      <div className="text-sm leading-relaxed whitespace-pre-wrap break-words space-y-1">
+                        <ReactMarkdown
+                          remarkPlugins={[remarkGfm]}
+                          components={{
+                            p: ({node, ...props}) => <p className="mb-0" {...props} />,
+                            ul: ({ node, ...props }) => (
+                              <ul className="list-disc pl-5 space-y-1" {...props} />
+                            ),
+                            ol: ({ node, ...props }) => (
+                              <ol className="list-decimal pl-5 space-y-1" {...props} />
+                            ),
+                            li: ({ node, ...props }) => (
+                              <li className="pl-1" {...props} />
+                            ),
+                            strong: ({ node, ...props }) => (
+                              <strong className="font-semibold" {...props} />
+                            ),
+                          }}
+                        >
+                          {msg.content}
+                        </ReactMarkdown>
+                      </div>
+                    ) : (
+                      <p className="text-sm leading-relaxed whitespace-pre-wrap break-words">
+                        {msg.content}
+                      </p>
+                    )}
                   </div>
                 </motion.div>
               ))}
@@ -176,7 +199,7 @@ const FPLChatbot = () => {
                   transition={{ duration: 0.3 }}
                   className="flex justify-start"
                 >
-                  <div className="bg-white/5 text-white border border-white/10 px-5 py-3 rounded-2xl shadow-md backdrop-blur-sm">
+                  <div className="bg-black/20 text-white border border-white/10 px-5 py-3 rounded-2xl backdrop-blur-sm">
                     <div className="flex items-center gap-2">
                       <motion.div
                         animate={{ rotate: 360 }}
@@ -195,20 +218,20 @@ const FPLChatbot = () => {
         )}
 
         <motion.div
-          className="flex-shrink-0"
+          className="shrink-0"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2, duration: 0.4 }}
         >
           <div className="relative">
-            <div className="bg-white/5 border border-white/10 rounded-2xl shadow-lg hover:shadow-xl hover:border-white/20 transition-all duration-300 focus-within:ring-2 focus-within:ring-white/30 focus-within:border-white/30 backdrop-blur-sm">
+            <div className="bg-black/20 border border-white/10 rounded-2xl shadow-lg backdrop-blur-sm focus-within:ring-2 focus-within:ring-white/30 focus-within:border-white/30 transition-all duration-300">
               <div className="flex items-end gap-3 p-4">
                 <textarea
                   className="flex-1 bg-transparent border-none outline-none resize-none text-white placeholder-white/40 text-sm font-medium max-h-32"
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
                   onKeyPress={handleKeyPress}
-                  placeholder="Ask a question or make a request..."
+                  placeholder="Or type your message here..."
                   rows={1}
                   disabled={isLoading}
                 />
@@ -217,9 +240,9 @@ const FPLChatbot = () => {
                   whileTap={{ scale: 0.95 }}
                   onClick={() => handleSend()}
                   disabled={!input.trim() || isLoading}
-                  className={`flex-shrink-0 flex items-center justify-center w-10 h-10 rounded-full transition-all duration-300 ${
+                  className={`shrink-0 flex items-center justify-center w-10 h-10 rounded-full transition-all duration-300 ${
                     input.trim() && !isLoading
-                      ? 'bg-white text-black shadow-lg hover:shadow-xl'
+                      ? 'bg-blue-500 text-white'
                       : 'bg-white/10 text-white/40 cursor-not-allowed'
                   }`}
                 >
