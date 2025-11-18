@@ -1,12 +1,10 @@
 """FPL player statistics - calculated metrics and analysis"""
 
-from langchain_core.tools import tool
 from typing import Any, Dict, Optional, List
 import requests
 from .api_client import bootstrap_static, DEFAULT_TIMEOUT
 from .fpl_rules import FPL_RULES_KNOWLEDGE, FPL_SEARCHABLE_RULES
 
-@tool
 def get_all_players_with_stats(
     session: Optional[requests.Session] = None, timeout: float = DEFAULT_TIMEOUT
 ) -> List[Dict[str, Any]]:
@@ -72,16 +70,76 @@ def get_all_players_with_stats(
 
     return players_with_stats
 
-@tool
 def get_player_stats(player_name: str, session: Optional[requests.Session] = None, timeout: float = DEFAULT_TIMEOUT) -> Optional[Dict[str, Any]]:
-    """Get stats for a specific player by name."""
+    """Get stats for a specific player by name.
+
+    Matching logic:
+    1. Exact match on web_name (e.g. "Haaland").
+    2. Exact match on full name ("Erling Haaland").
+    3. Case-insensitive substring match against web_name or full name.
+    4. Token match: all tokens contained within the player's full name.
+
+    Returns the raw element dict augmented with a few derived stats for consistency
+    with get_all_players_with_stats.
+    """
+    target = player_name.strip().lower()
+    if not target:
+        return None
+
     bootstrap = bootstrap_static(session=session, timeout=timeout)
-    for element in bootstrap.get("elements", []):
-        if element.get("web_name", "").lower() == player_name.lower():
-            return element
+    candidates = bootstrap.get("elements", [])
+
+    def enrich(element: Dict[str, Any]) -> Dict[str, Any]:
+        # Mirror derived stats from get_all_players_with_stats for a single player
+        total_score = element.get("total_points", 0)
+        minutes_played = element.get("minutes", 0)
+        cost = element.get("now_cost", 0) / 10.0
+        points_per_game = float(element.get("points_per_game", 0))
+        bonus = element.get("bonus", 0)
+        assists = element.get("assists", 0)
+        appearances = minutes_played / 90.0 if minutes_played else 0
+        points_per_90 = round(total_score / appearances, 2) if appearances > 0 else 0
+        points_per_million = round(total_score / cost, 2) if cost > 0 else 0
+        points_per_game_per_million = round(points_per_game / cost, 2) if cost > 0 else 0
+        points_per_million_per_90 = round(points_per_90 / cost, 2) if cost > 0 else 0
+        bonus_per_90 = round(bonus / appearances, 2) if appearances > 0 else 0
+        element["derived_stats"] = {
+            "points_per_90": points_per_90,
+            "points_per_million": points_per_million,
+            "points_per_game_per_million": points_per_game_per_million,
+            "points_per_million_per_90": points_per_million_per_90,
+            "bonus_per_90": bonus_per_90,
+            "assists": assists,
+        }
+        return element
+
+    # Build searchable strings
+    for element in candidates:
+        web = element.get("web_name", "").lower()
+        full = f"{element.get('first_name', '')} {element.get('second_name', '')}".strip().lower()
+        if target == web or target == full:
+            return enrich(element)
+
+    # Substring match
+    substring_hits = []
+    for element in candidates:
+        web = element.get("web_name", "").lower()
+        full = f"{element.get('first_name', '')} {element.get('second_name', '')}".strip().lower()
+        if target in web or (full and target in full):
+            substring_hits.append(element)
+    if substring_hits:
+        return enrich(substring_hits[0])  # Return first match deterministically
+
+    # Token match (all tokens present in full name words)
+    tokens = [t for t in target.split() if t]
+    if tokens:
+        for element in candidates:
+            full_tokens = f"{element.get('first_name', '')} {element.get('second_name', '')}".lower().split()
+            if all(tok in full_tokens for tok in tokens):
+                return enrich(element)
+
     return None
 
-@tool
 def get_best_players(position: str = None, sort_by: str = "points_per_million_per_90", count: int = 5, session: Optional[requests.Session] = None, timeout: float = DEFAULT_TIMEOUT) -> list:
     """Return the best players by position and sort criteria."""
     players = get_all_players_with_stats(session=session, timeout=timeout)
@@ -94,9 +152,6 @@ def get_best_players(position: str = None, sort_by: str = "points_per_million_pe
         players = sorted(players, key=lambda x: x.get(sort_by, 0), reverse=True)
     return players[:count]
 
-
-
-@tool
 def get_fpl_rules() -> dict:
     """Return the full FPL rules knowledge base and a formatted string for conversational use."""
     return {
