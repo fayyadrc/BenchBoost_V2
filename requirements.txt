@@ -9,3 +9,9 @@ python-dotenv
 playwright
 ipython
 requests
+
+# Database (MongoDB)
+pymongo>=4.6.0
+# Async Mongo driver
+motor>=3.3.0
+# motor can be added later if async needed

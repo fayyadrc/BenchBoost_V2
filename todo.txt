@@ -1,0 +1,6 @@
+TODO:
+-(Scraped player data )player profiles in db are currently from fpl api, i need them to be from player-data.py
+- (Fixtures)the fixtures have club id's and all which the llm wont understand so they need to be converted to text or club shortforms before ingesting
+- (Redis Cache)the cache has most of the data available, with dict mapping for the #2 concern. need to implement Redis for better caching.
+- (Scraped data)need to further decide how the scraped data for news and injuries should be handles
+- 
