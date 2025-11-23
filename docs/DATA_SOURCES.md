@@ -853,7 +853,96 @@ The FPL API does not publish official rate limits, but recommended best practice
 - Live FPL: https://www.livefpl.net/
 - FPL Plan: https://plan.livefpl.net/
 
----
+# Data Sources & Available Data Summary
 
-**Last Updated**: November 2025  
-**API Version**: 2024/25 Season
+## Official FPL API
+*   **General Game Data**: 
+    *   Players (elements): Price, position, ownership, status.
+    *   Teams: Name, short name, strength.
+    *   Gameweeks (events): Deadlines, average scores, highest scores.
+    *   Game Settings: Rules, chip definitions.
+*   **Live Scoring**: 
+    *   Real-time points for the current gameweek.
+    *   Match stats: Goals, assists, bonus points, saves, cards.
+*   **Manager Data**: 
+    *   Team history and past performance.
+    *   Current gameweek picks and substitutes.
+    *   Transfer history and chip usage.
+*   **Fixtures**: 
+    *   Match schedule and results.
+    *   Fixture difficulty ratings (FDR).
+
+## FPL Alerts (Scraped)
+*   **Price Changes**: Real-time player price rises and falls.
+*   **Status Updates**: News on injuries, suspensions, and availability.
+*   **Market Activity**: Trends in player transfers (in/out).
+
+## LiveFPL (Scraped)
+*   **Live Rank**: Real-time overall rank estimation and rank movement (green/red arrows).
+*   **Team Analysis**: 
+    *   **Differentials**: Low-ownership players in your team.
+    *   **Threats**: High-ownership players not in your team.
+*   **Captaincy**: Captain points and effective ownership stats.
+*   **Chip Usage**: Active chips for the current gameweek.
+
+## FBref (Scraped)
+*   **Advanced Stats**: 
+    *   Expected Goals (xG) and Expected Assists (xA).
+    *   Shot creating actions, progressive carries.
+*   **Performance Metrics**: Shots, passes, tackles, blocks, interceptions.
+*   **Playing Time**: Matches played, starts, minutes per game.
+
+## Local Data
+*   **Player Stats JSON**: Cached collection of player statistics (`pl_player_stats.json`).
+
+
+
+## VECTOR DB
+
+* Player metadata (name, team, position)
+
+* Player biography / long-term profiles
+
+* Team names and strengths (if static)
+
+* Game settings & chip definitions
+
+* Season fixture list
+
+* Static FDR
+
+* FBref all stats (xG, xA, SCA, carries, defensive stats)
+
+* Historical performance summaries
+
+* Local cached player stats JSON
+
+* Structural LiveFPL concepts (not numbers)
+
+## LIVE FETCH
+
+* Current player status (injured/flags)
+
+* Price changes / predictions
+
+* Transfer trends (in/out this GW)
+
+* Selected-by-%
+
+Real-time match events
+
+Player points (GW + Total)
+
+Manager picks & transfer history
+
+Chip usage this GW
+
+Live rank (LiveFPL)
+
+Effective ownership (EO)
+
+Live captain points
+
+Fixture results
+
+Dynamic fixture difficulty (if recalculated)*
