@@ -10,6 +10,7 @@ from pydantic import BaseModel
 # Use the main agent implementation
 from backend.agent.agent import create_agent
 from langchain_core.messages import AIMessage, HumanMessage
+from backend.data import cache
 
 # /Users/fayyadrc/Documents/Programming/FPLChatbot_V2/fplAI/backend/middleware/api.py
 
@@ -18,6 +19,21 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 app = FastAPI(title="FPLChatbot Middleware")
+
+# Startup event to load core game data
+@app.on_event("startup")
+async def startup_event():
+    """Load core FPL data on application startup."""
+    logger.info("Loading core FPL game data on startup...")
+    try:
+        await asyncio.to_thread(cache.load_core_game_data, force_refresh=True)
+        stats = cache.get_cache_stats()
+        logger.info(f"✅ Cache initialized: {stats.get('cache_size')} entries loaded")
+        logger.info(f"   Players: {len(cache.core_data.get('players', {}))}")
+        logger.info(f"   Teams: {len(cache.core_data.get('teams', {}))}")
+    except Exception as e:
+        logger.error(f"❌ Failed to load core game data on startup: {e}", exc_info=True)
+        logger.warning("The API may have degraded performance until data is loaded.")
 
 # Configure CORS - set FRONTEND_URLS env var to comma-separated allowed origins (or leave unset to allow all)
 _frontend_urls = os.getenv("FRONTEND_URLS")

@@ -12,6 +12,7 @@ sys.path.append(project_root)
 
 # --- Imports ---
 from backend.data.api_client import bootstrap_static, fixtures
+from backend.data.player_injury_status import get_all_players
 from backend.database.db import get_db
 from pymongo import ASCENDING, DESCENDING
 
@@ -91,7 +92,9 @@ def update_static_data():
             db.teams.insert_many(teams)
         
         # --- STEP 3: Process & Insert Players (Elements) ---
-        raw_players = bootstrap.get("elements", [])
+        # raw_players = bootstrap.get("elements", [])
+        logger.info("📡 Fetching player profiles from player_data.py...")
+        raw_players = get_all_players()
         # Filter: Optional - remove players who have left the league (status = 'u')
         # keeping 'i' (injured) and 's' (suspended) as they are still entities
         active_players = [p for p in raw_players if p.get("status") != "u"]
@@ -119,6 +122,15 @@ def update_static_data():
 
         # --- STEP 6: Apply Schema/Indexes ---
         create_indexes(db)
+        
+        # --- STEP 7: Invalidate Cache ---
+        # Ensure cache is cleared after database update
+        try:
+            from backend.data import cache
+            cache.invalidate_cache()
+            logger.info("✅ Cache invalidated after database update")
+        except Exception as cache_error:
+            logger.warning(f"⚠️  Failed to invalidate cache: {cache_error}")
 
         elapsed = time.time() - start_time
         logger.info(f"✅ Data ingestion complete in {elapsed:.2f} seconds.")
