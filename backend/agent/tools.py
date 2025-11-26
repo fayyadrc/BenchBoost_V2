@@ -216,6 +216,29 @@ def get_manager_info(entry_id: int, session: Optional[Any] = None, timeout: Opti
 
 
 @tool
+def get_manager_squad(entry_id: int, event_id: Optional[int] = None) -> Dict:
+    """
+    Get a manager's current squad with player details for captain/transfer advice.
+    
+    IMPORTANT: Use this tool FIRST when the user asks personal questions like:
+    - "Who should I captain?"
+    - "Who should I bench?"
+    - "Transfer suggestions for my team"
+    - "Rate my team"
+    - Any question about "my team" or "my players"
+    
+    Args:
+        entry_id: The manager's FPL entry ID
+        event_id: Optional gameweek number (defaults to current GW)
+    
+    Returns:
+        Dict with starting_xi, bench, and player details (name, team, position, form, points, fixtures)
+    """
+    from ..data.manager_data import get_manager_squad_data
+    return get_manager_squad_data(entry_id, event_id)
+
+
+@tool
 def get_live_gameweek_data(entry_id: int, session: Optional[Any] = None, timeout: Optional[int] = None) -> Dict:
     """Get a manager's live GW performance."""
     return livefpl_scrape.scrape_livefpl_data(entry_id)
@@ -362,6 +385,7 @@ all_tools = [
     # Live data & scraping
     scrape_livefpl_data,
     get_manager_info,
+    get_manager_squad,
     get_live_gameweek_data,
     
     # API tools (use sparingly)

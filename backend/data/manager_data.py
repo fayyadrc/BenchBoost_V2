@@ -145,6 +145,130 @@ class FPLDataFetcher:
         return self._get("stats/best-classic-leagues/")
 
 
+# -----------------------------
+# SHARED HELPER FUNCTIONS
+# -----------------------------
+
+def get_manager_squad_data(entry_id: int, event_id: int = None) -> dict:
+    """
+    Get a manager's full squad with enriched player details.
+    
+    This is a shared function used by both the API endpoint and agent tools
+    to avoid code duplication.
+    
+    Args:
+        entry_id: Manager's FPL entry ID
+        event_id: Gameweek number (defaults to current GW if None)
+    
+    Returns:
+        Dict with starting_xi, bench, and player details
+    """
+    from . import api_client, cache
+    from .utils import get_player_full_name, get_position_name
+    
+    # Get current gameweek if not specified
+    if event_id is None:
+        current_gw = cache.get_current_gameweek()
+        if not current_gw:
+            return {"error": "Could not determine current gameweek"}
+        event_id = current_gw.get("id")
+    
+    # Get the manager's picks for the gameweek
+    picks_data = api_client.gameweek_picks(entry_id, event_id)
+    
+    if not picks_data or "picks" not in picks_data:
+        return {"error": f"No team data found for manager {entry_id} in gameweek {event_id}"}
+    
+    picks = picks_data.get("picks", [])
+    entry_history = picks_data.get("entry_history", {})
+    active_chip = picks_data.get("active_chip")
+    automatic_subs = picks_data.get("automatic_subs", [])
+    
+    # Get live data for the gameweek to get actual points
+    live_data = api_client.event_live(event_id)
+    live_elements = {e["id"]: e for e in live_data.get("elements", [])}
+    
+    # Enrich picks with player details from cache
+    enriched_picks = []
+    
+    for pick in picks:
+        element_id = pick.get("element")
+        player = cache.get_player_by_id(element_id)
+        live_player = live_elements.get(element_id, {})
+        live_stats = live_player.get("stats", {})
+        
+        if player:
+            team = cache.get_team_by_id(player.get("team"))
+            
+            # Get base points from live stats
+            base_points = live_stats.get("total_points", 0)
+            multiplier = pick.get("multiplier", 1)
+            
+            # For bench players (multiplier=0), show base_points
+            # For starting XI, show actual points (with captain multiplier if applicable)
+            if multiplier == 0:
+                display_points = base_points
+            else:
+                display_points = base_points * multiplier
+            
+            enriched_picks.append({
+                "element": element_id,
+                "position": pick.get("position"),  # Squad position 1-15
+                "is_captain": pick.get("is_captain", False),
+                "is_vice_captain": pick.get("is_vice_captain", False),
+                "multiplier": multiplier,
+                "player_name": player.get("web_name", "Unknown"),
+                "full_name": get_player_full_name(player),
+                "team_name": team.get("name", "Unknown") if team else "Unknown",
+                "team_short": team.get("short_name", "UNK") if team else "UNK",
+                "element_type": player.get("element_type"),
+                "position_name": get_position_name(player.get("element_type", 0)),
+                "points": display_points,
+                "base_points": base_points,
+                "price": player.get("now_cost", 0) / 10,
+                "form": player.get("form", "0"),
+                "points_per_game": player.get("points_per_game", "0"),
+                "total_points": player.get("total_points", 0),
+                "selected_by_percent": player.get("selected_by_percent", "0"),
+                "news": player.get("news", ""),
+                "chance_of_playing": player.get("chance_of_playing_next_round"),
+                "photo": player.get("photo", ""),
+            })
+        else:
+            enriched_picks.append({
+                "element": element_id,
+                "position": pick.get("position"),
+                "is_captain": pick.get("is_captain", False),
+                "is_vice_captain": pick.get("is_vice_captain", False),
+                "multiplier": pick.get("multiplier", 1),
+                "player_name": "Unknown",
+                "points": live_stats.get("total_points", 0) * pick.get("multiplier", 1),
+            })
+    
+    # Separate starting XI (positions 1-11) and bench (positions 12-15)
+    starting_xi = [p for p in enriched_picks if p.get("position", 0) <= 11]
+    bench = [p for p in enriched_picks if p.get("position", 0) > 11]
+    
+    return {
+        "entry_id": entry_id,
+        "event": event_id,
+        "active_chip": active_chip,
+        "points": entry_history.get("points", 0),
+        "total_points": entry_history.get("total_points", 0),
+        "rank": entry_history.get("rank"),
+        "overall_rank": entry_history.get("overall_rank"),
+        "bank": entry_history.get("bank", 0) / 10,
+        "value": entry_history.get("value", 0) / 10,
+        "event_transfers": entry_history.get("event_transfers", 0),
+        "event_transfers_cost": entry_history.get("event_transfers_cost", 0),
+        "starting_xi": starting_xi,
+        "bench": bench,
+        "automatic_subs": automatic_subs,
+        "current_captain": next((p["player_name"] for p in enriched_picks if p.get("is_captain")), None),
+        "current_vice_captain": next((p["player_name"] for p in enriched_picks if p.get("is_vice_captain")), None),
+    }
+
+
 if __name__ == "__main__":
     # ---------------- CONFIGURATION ----------------
     # Replace these with real IDs to test specific endpoints

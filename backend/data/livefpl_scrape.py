@@ -10,7 +10,6 @@
 import json
 from typing import Dict, Any, Optional
 from playwright.sync_api import Playwright, sync_playwright, TimeoutError
-from langchain.tools import tool
 
 def extract_player_details(card) -> Dict[str, Any]:
     """Extract player name, points, and ownership from a player card."""
@@ -115,7 +114,6 @@ def extract_team_players(page) -> list:
     except Exception as e:
         return {"error": str(e)}
 
-@tool
 def scrape_livefpl_data(
     entry_id: int, headless: bool = True, timeout: int = 180000
 ) -> Dict[str, Any]:

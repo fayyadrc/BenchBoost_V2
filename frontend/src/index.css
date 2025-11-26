@@ -60,6 +60,33 @@
   --ring: #8b5cf6;
 }
 
+.light {
+  --primary: #7c3aed;
+  --primary-foreground: #ffffff;
+  --chart-1: #7c3aed;
+  --chart-2: #8b5cf6;
+  --chart-3: #a78bfa;
+  --chart-4: #c4b5fd;
+  --chart-5: #ddd6fe;
+  --background: #f8fafc;
+  --foreground: #0f172a;
+  --card: #ffffff;
+  --card-foreground: #0f172a;
+  --popover: #ffffff;
+  --popover-foreground: #0f172a;
+  --secondary: #f1f5f9;
+  --secondary-foreground: #0f172a;
+  --muted: #f1f5f9;
+  --muted-foreground: #64748b;
+  --accent: #f1f5f9;
+  --accent-foreground: #0f172a;
+  --destructive: #dc2626;
+  --destructive-foreground: #ffffff;
+  --border: #e2e8f0;
+  --input: #e2e8f0;
+  --ring: #7c3aed;
+}
+
 @layer base {
   * {
     @apply border-border;
@@ -99,6 +126,14 @@
 
 ::-webkit-scrollbar-thumb:hover { 
   background: rgba(255, 255, 255, 0.2); 
+}
+
+.light ::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.1);
+}
+
+.light ::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.2);
 }
 
 @layer components {

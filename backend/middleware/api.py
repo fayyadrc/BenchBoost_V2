@@ -63,6 +63,7 @@ app.add_middleware(
 class QueryRequest(BaseModel):
     query: str
     session_id: Optional[str] = None
+    manager_id: Optional[int] = None
     # kept for backwards-compatibility; agent manages its own tools
     tools: Optional[List[str]] = None
 
@@ -134,8 +135,15 @@ def _coerce_to_text(payload: Any) -> str:
     return str(payload)
 
 
-async def _invoke_agent(agent: Any, query: str, chat_history: List[Any]) -> Any:
-    payload = {"input": query, "chat_history": chat_history}
+async def _invoke_agent(agent: Any, query: str, chat_history: List[Any], manager_id: Optional[int] = None) -> Any:
+    # If manager_id is provided, prepend it as context to the query
+    # This way the agent knows the user's FPL ID without having to ask
+    if manager_id is not None:
+        enhanced_query = f"[User's FPL Team ID: {manager_id}]\n\n{query}"
+    else:
+        enhanced_query = query
+    
+    payload = {"input": enhanced_query, "chat_history": chat_history}
     delay = 2.0
     max_attempts = 3
     for attempt in range(1, max_attempts + 1):
@@ -167,8 +175,8 @@ async def query_endpoint(req: QueryRequest):
     chat_history = _get_chat_history(session)
 
     try:
-        logger.info("Running agent for session=%s query=%s", session, req.query[:120])
-        result = await _invoke_agent(agent, req.query, chat_history)
+        logger.info("Running agent for session=%s query=%s manager_id=%s", session, req.query[:120], req.manager_id)
+        result = await _invoke_agent(agent, req.query, chat_history, req.manager_id)
 
         # Extract response and update chat history
         response_raw = result.get("output") if isinstance(result, dict) else result
@@ -232,3 +240,26 @@ async def get_manager(entry_id: int):
     except Exception as e:
         logger.exception(f"Failed to get manager info for entry_id={entry_id}")
         raise HTTPException(status_code=404, detail=f"Manager with ID {entry_id} not found or API error.")
+
+
+@app.get("/api/manager/{entry_id}/team")
+async def get_manager_team(entry_id: int, event: int = None):
+    """
+    Get a manager's full team for a specific gameweek.
+    If event (gameweek) is not provided, uses the current gameweek.
+    Returns the team with player details including name, position, team, points, etc.
+    """
+    from backend.data.manager_data import get_manager_squad_data
+    
+    try:
+        result = await asyncio.to_thread(get_manager_squad_data, entry_id, event)
+        
+        if "error" in result:
+            raise HTTPException(status_code=404, detail=result["error"])
+        
+        return result
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.exception(f"Failed to get team for entry_id={entry_id}, event={event}")
+        raise HTTPException(status_code=500, detail=f"Failed to fetch team data: {str(e)}")
