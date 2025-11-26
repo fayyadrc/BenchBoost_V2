@@ -189,3 +189,46 @@ async def query_endpoint(req: QueryRequest):
 @app.get("/api/health")
 async def health():
     return {"status": "ok"}
+
+
+@app.get("/api/manager/{entry_id}")
+async def get_manager(entry_id: int):
+    """
+    Get manager information by FPL entry ID.
+    Returns basic manager info, current GW points, and league standings.
+    """
+    from backend.data import api_client
+    
+    try:
+        # Get manager summary
+        summary = await asyncio.to_thread(api_client.entry_summary, entry_id)
+        
+        # Get manager history for current season stats
+        history = await asyncio.to_thread(api_client.entry_history, entry_id)
+        
+        # Extract current gameweek data
+        current_gw = history.get("current", [])
+        latest_gw = current_gw[-1] if current_gw else {}
+        
+        # Extract classic leagues (limit to top 5 by rank)
+        leagues = summary.get("leagues", {}).get("classic", [])
+        top_leagues = sorted(
+            [{"id": l["id"], "name": l["name"], "rank": l["entry_rank"]} for l in leagues if l.get("entry_rank")],
+            key=lambda x: x["rank"]
+        )[:5]
+        
+        return {
+            "id": summary.get("id"),
+            "name": f"{summary.get('player_first_name', '')} {summary.get('player_last_name', '')}".strip(),
+            "team_name": summary.get("name", ""),
+            "overall_rank": summary.get("summary_overall_rank"),
+            "overall_points": summary.get("summary_overall_points", 0),
+            "gameweek_points": latest_gw.get("points", 0),
+            "team_value": latest_gw.get("value", 0) / 10,  # Convert to millions
+            "bank": latest_gw.get("bank", 0) / 10,  # Convert to millions
+            "total_transfers": summary.get("last_deadline_total_transfers", 0),
+            "leagues": top_leagues,
+        }
+    except Exception as e:
+        logger.exception(f"Failed to get manager info for entry_id={entry_id}")
+        raise HTTPException(status_code=404, detail=f"Manager with ID {entry_id} not found or API error.")

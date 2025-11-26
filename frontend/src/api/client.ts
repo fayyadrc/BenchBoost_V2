@@ -9,6 +9,23 @@ export type QueryResponse = {
   raw_output?: unknown;
 };
 
+export type ManagerData = {
+  id: number;
+  name: string;
+  team_name: string;
+  overall_rank: number | null;
+  overall_points: number;
+  gameweek_points: number;
+  team_value: number;
+  bank: number;
+  total_transfers: number;
+  leagues: Array<{
+    id: number;
+    name: string;
+    rank: number;
+  }>;
+};
+
 const jsonHeaders = {
   'Content-Type': 'application/json',
 };
@@ -18,6 +35,15 @@ const API_BASE = ''; // rely on Vite proxy in dev
 export async function health(): Promise<{ status: string }> {
   const res = await fetch(`${API_BASE}/api/health`, { method: 'GET' });
   if (!res.ok) throw new Error(`Health check failed: ${res.status}`);
+  return res.json();
+}
+
+export async function getManagerInfo(entryId: number): Promise<ManagerData> {
+  const res = await fetch(`${API_BASE}/api/manager/${entryId}`, { method: 'GET' });
+  if (!res.ok) {
+    const detail = await res.text().catch(() => '');
+    throw new Error(`API error ${res.status}: ${detail || res.statusText}`);
+  }
   return res.json();
 }
 

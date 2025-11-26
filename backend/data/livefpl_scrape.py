@@ -156,7 +156,7 @@ def scrape_livefpl_data(
         except TimeoutError:
             pass
 
-        # Try to close ad if present
+        
         try:
             ad_frame = page.frame_locator("[id^='google_ads_iframe_']")
             ad_close_button = ad_frame.get_by_role("button", name="Close ad")

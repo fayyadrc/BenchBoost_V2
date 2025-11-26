@@ -1,9 +1,10 @@
 import React from 'react';
-import { Send, Users, TrendingUp, BarChart3, Target, Calendar, Zap, Loader } from 'lucide-react';
+import { Send, Users, TrendingUp, BarChart3, Target, Calendar, Zap, Loader, User, Trophy, Wallet, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import { ask, getOrCreateSessionId } from './api/client';
+import { ask, getOrCreateSessionId, getManagerInfo } from './api/client';
+import type { ManagerData } from './api/client';
 
 type Message = {
   role: 'user' | 'assistant';
@@ -18,6 +19,12 @@ const FPLChatbot = () => {
   const [isLoading, setIsLoading] = React.useState<boolean>(false);
   const [showSuggestions, setShowSuggestions] = React.useState<boolean>(true);
   const messagesEndRef = React.useRef<HTMLDivElement | null>(null);
+  
+  // Manager state
+  const [managerId, setManagerId] = React.useState<string>('');
+  const [managerData, setManagerData] = React.useState<ManagerData | null>(null);
+  const [managerLoading, setManagerLoading] = React.useState<boolean>(false);
+  const [managerError, setManagerError] = React.useState<string>('');
 
   const suggestions: Array<{ icon: IconComponent; text: string }> = [
     { icon: Users, text: 'Who should I captain this gameweek?' },
@@ -72,9 +79,145 @@ const FPLChatbot = () => {
     }
   };
 
+  const handleManagerSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!managerId.trim() || managerLoading) return;
+    
+    setManagerLoading(true);
+    setManagerError('');
+    
+    try {
+      const id = parseInt(managerId.trim(), 10);
+      if (isNaN(id)) {
+        throw new Error('Please enter a valid numeric ID');
+      }
+      const data = await getManagerInfo(id);
+      setManagerData(data);
+      localStorage.setItem('fpl_manager_id', managerId.trim());
+    } catch (err: any) {
+      setManagerError(err?.message || 'Failed to fetch manager data');
+      setManagerData(null);
+    } finally {
+      setManagerLoading(false);
+    }
+  };
+
+  const clearManager = () => {
+    setManagerData(null);
+    setManagerId('');
+    setManagerError('');
+    localStorage.removeItem('fpl_manager_id');
+  };
+
+  // Load saved manager ID on mount
+  React.useEffect(() => {
+    const savedId = localStorage.getItem('fpl_manager_id');
+    if (savedId) {
+      setManagerId(savedId);
+      getManagerInfo(parseInt(savedId, 10))
+        .then(setManagerData)
+        .catch(() => localStorage.removeItem('fpl_manager_id'));
+    }
+  }, []);
+
   return (
     <div className="min-h-screen bg-transparent text-white font-sans">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex flex-col min-h-screen">
+      {/* Navbar */}
+      <nav className="sticky top-0 z-50 bg-black/40 backdrop-blur-md border-b border-white/10">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
+          <div className="flex items-center justify-between gap-4">
+            {/* Logo */}
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
+                <Zap className="w-5 h-5 text-white" />
+              </div>
+              <span className="text-lg font-bold text-white hidden sm:block">BenchBoost</span>
+            </div>
+
+            {/* Manager ID Input / Display */}
+            <div className="flex items-center gap-3">
+              {managerData ? (
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  className="flex items-center gap-3 bg-white/10 rounded-xl px-4 py-2 border border-white/10"
+                >
+                  <div className="flex items-center gap-2">
+                    <User className="w-4 h-4 text-blue-400" />
+                    <div className="text-sm">
+                      <p className="font-semibold text-white">{managerData.team_name}</p>
+                      <p className="text-white/60 text-xs">{managerData.name}</p>
+                    </div>
+                  </div>
+                  <div className="h-8 w-px bg-white/20" />
+                  <div className="flex items-center gap-4 text-xs">
+                    <div className="flex items-center gap-1">
+                      <Trophy className="w-3.5 h-3.5 text-yellow-400" />
+                      <span className="text-white/80">{managerData.overall_rank?.toLocaleString() ?? 'N/A'}</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <TrendingUp className="w-3.5 h-3.5 text-green-400" />
+                      <span className="text-white/80">{managerData.overall_points} pts</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <Wallet className="w-3.5 h-3.5 text-emerald-400" />
+                      <span className="text-white/80">£{managerData.team_value.toFixed(1)}m</span>
+                    </div>
+                  </div>
+                  <button
+                    onClick={clearManager}
+                    className="p-1 hover:bg-white/10 rounded-full transition-colors ml-1"
+                    title="Clear manager"
+                  >
+                    <X className="w-4 h-4 text-white/60 hover:text-white" />
+                  </button>
+                </motion.div>
+              ) : (
+                <form onSubmit={handleManagerSubmit} className="flex items-center gap-2">
+                  <div className="relative">
+                    <input
+                      type="text"
+                      value={managerId}
+                      onChange={(e) => setManagerId(e.target.value)}
+                      placeholder="Enter FPL ID"
+                      className="bg-white/10 border border-white/20 rounded-lg px-3 py-1.5 text-sm text-white placeholder-white/40 w-32 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all"
+                      disabled={managerLoading}
+                    />
+                    {managerLoading && (
+                      <div className="absolute right-2 top-1/2 -translate-y-1/2">
+                        <Loader className="w-4 h-4 text-white/60 animate-spin" />
+                      </div>
+                    )}
+                  </div>
+                  <button
+                    type="submit"
+                    disabled={!managerId.trim() || managerLoading}
+                    className="bg-blue-600 hover:bg-blue-500 disabled:bg-white/10 disabled:text-white/40 text-white text-sm px-3 py-1.5 rounded-lg font-medium transition-colors"
+                  >
+                    Load
+                  </button>
+                </form>
+              )}
+            </div>
+          </div>
+          
+          {/* Manager Error */}
+          <AnimatePresence>
+            {managerError && (
+              <motion.p
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                exit={{ opacity: 0, height: 0 }}
+                className="text-red-400 text-xs mt-2 text-right"
+              >
+                {managerError}
+              </motion.p>
+            )}
+          </AnimatePresence>
+        </div>
+      </nav>
+
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex flex-col min-h-[calc(100vh-72px)]">
         {messages.length === 0 ? (
           <motion.div
             className="flex-1 flex flex-col"
@@ -152,29 +295,85 @@ const FPLChatbot = () => {
                   className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
                 >
                   <div
-                    className={`max-w-xs lg:max-w-md xl:max-w-lg px-4 py-2 rounded-xl ${
+                    className={`px-4 py-3 rounded-2xl ${
                       msg.role === 'user'
-                        ? 'bg-blue-600 text-white'
-                        : 'bg-black/20 text-white border border-white/10 backdrop-blur-sm'
+                        ? 'max-w-xs lg:max-w-md xl:max-w-lg bg-blue-600 text-white'
+                        : 'max-w-full lg:max-w-2xl xl:max-w-3xl bg-black/20 text-white border border-white/10 backdrop-blur-sm'
                     }`}
                   >
                     {msg.role === 'assistant' ? (
-                      <div className="text-sm leading-relaxed whitespace-pre-wrap break-words space-y-1">
+                      <div className="text-sm leading-relaxed break-words prose prose-invert prose-sm max-w-none">
                         <ReactMarkdown
                           remarkPlugins={[remarkGfm]}
                           components={{
-                            p: ({node, ...props}) => <p className="mb-0" {...props} />,
+                            p: ({node, ...props}) => <p className="mb-3 last:mb-0 text-white/90" {...props} />,
                             ul: ({ node, ...props }) => (
-                              <ul className="list-disc pl-5 space-y-1" {...props} />
+                              <ul className="list-disc pl-5 space-y-1 mb-3 text-white/90" {...props} />
                             ),
                             ol: ({ node, ...props }) => (
-                              <ol className="list-decimal pl-5 space-y-1" {...props} />
+                              <ol className="list-decimal pl-5 space-y-1 mb-3 text-white/90" {...props} />
                             ),
                             li: ({ node, ...props }) => (
-                              <li className="pl-1" {...props} />
+                              <li className="pl-1 text-white/90" {...props} />
                             ),
                             strong: ({ node, ...props }) => (
-                              <strong className="font-semibold" {...props} />
+                              <strong className="font-bold text-white" {...props} />
+                            ),
+                            em: ({ node, ...props }) => (
+                              <em className="italic text-white/80" {...props} />
+                            ),
+                            h1: ({ node, ...props }) => (
+                              <h1 className="text-xl font-bold text-white mb-3 mt-4 first:mt-0" {...props} />
+                            ),
+                            h2: ({ node, ...props }) => (
+                              <h2 className="text-lg font-bold text-white mb-2 mt-4 first:mt-0" {...props} />
+                            ),
+                            h3: ({ node, ...props }) => (
+                              <h3 className="text-base font-semibold text-white mb-2 mt-3 first:mt-0" {...props} />
+                            ),
+                            table: ({ node, ...props }) => (
+                              <div className="overflow-x-auto my-4 rounded-lg border border-white/20">
+                                <table className="w-full text-left text-sm" {...props} />
+                              </div>
+                            ),
+                            thead: ({ node, ...props }) => (
+                              <thead className="bg-white/10 text-white font-semibold" {...props} />
+                            ),
+                            tbody: ({ node, ...props }) => (
+                              <tbody className="divide-y divide-white/10" {...props} />
+                            ),
+                            tr: ({ node, ...props }) => (
+                              <tr className="hover:bg-white/5 transition-colors" {...props} />
+                            ),
+                            th: ({ node, ...props }) => (
+                              <th className="px-3 py-2 text-white font-semibold whitespace-nowrap" {...props} />
+                            ),
+                            td: ({ node, ...props }) => (
+                              <td className="px-3 py-2 text-white/90 whitespace-nowrap" {...props} />
+                            ),
+                            code: ({ node, className, children, ...props }) => {
+                              const isInline = !className;
+                              return isInline ? (
+                                <code className="bg-white/10 text-emerald-400 px-1.5 py-0.5 rounded text-xs font-mono" {...props}>
+                                  {children}
+                                </code>
+                              ) : (
+                                <code className="block bg-black/40 p-3 rounded-lg text-xs font-mono overflow-x-auto text-white/90" {...props}>
+                                  {children}
+                                </code>
+                              );
+                            },
+                            pre: ({ node, ...props }) => (
+                              <pre className="my-3" {...props} />
+                            ),
+                            blockquote: ({ node, ...props }) => (
+                              <blockquote className="border-l-4 border-blue-500 pl-4 my-3 text-white/80 italic" {...props} />
+                            ),
+                            hr: ({ node, ...props }) => (
+                              <hr className="my-4 border-white/20" {...props} />
+                            ),
+                            a: ({ node, ...props }) => (
+                              <a className="text-blue-400 hover:text-blue-300 underline underline-offset-2" {...props} />
                             ),
                           }}
                         >
