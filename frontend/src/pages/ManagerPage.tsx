@@ -2,7 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  User, Trophy, TrendingUp, Wallet, Loader, X, Moon, Sun,
+  User, Trophy, TrendingUp, Wallet, X, Moon, Sun,
   ArrowLeft, Shield, Target, Activity, Minus, RefreshCw,
 } from 'lucide-react';
 import { useManager } from '../context/ManagerContext';
@@ -396,10 +396,10 @@ const ManagerPage: React.FC = () => {
               </div>
             </div>
 
-            {/* Main Grid - Asymmetric */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              {/* Left Column - Gameweek Info */}
-              <div className="lg:col-span-1 space-y-6">
+
+            <div className="flex flex-col lg:grid lg:grid-cols-3 gap-6">
+
+              <div className="lg:col-span-1 space-y-6 order-2 lg:order-1">
                 {managerTeam && (
                   <>
                     {/* Gameweek Header */}
@@ -530,7 +530,7 @@ const ManagerPage: React.FC = () => {
               </div>
 
               {/* Right Column - Pitch */}
-              <div className="lg:col-span-2">
+              <div className="lg:col-span-2 order-1 lg:order-2">
                 {managerTeam ? (
                   <div className={`border-2 p-6 ${isDark ? 'border-white/20 bg-gradient-to-b from-green-950 to-green-900' : 'border-slate-900 bg-gradient-to-b from-green-100 to-green-200'
                     }`}>

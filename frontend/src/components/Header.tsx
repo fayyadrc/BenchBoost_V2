@@ -32,18 +32,18 @@ const Header: React.FC<HeaderProps> = ({
 
     return (
         <header className={`border-b-2 ${isDark ? 'border-white/20 bg-slate-950' : 'border-slate-900 bg-white'}`}>
-            <div className="max-w-4xl mx-auto px-6 py-4">
-                <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-6">
-                        <h1 className={`text-2xl font-black uppercase tracking-tighter ${isDark ? 'text-white' : 'text-slate-900'}`}>
+            <div className="max-w-4xl mx-auto px-3 sm:px-6 py-3 sm:py-4">
+                <div className="flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-2 sm:gap-6">
+                        <h1 className={`text-lg sm:text-2xl font-black uppercase tracking-tighter ${isDark ? 'text-white' : 'text-slate-900'}`}>
                             Bench<span className={isDark ? 'text-blue-600' : 'text-blue-600'} style={isDark ? { color: '#003566' } : {}}>Boost</span>
                         </h1>
 
-                        <div className={`h-8 w-px ${isDark ? 'bg-white/20' : 'bg-slate-300'}`} />
+                        <div className={`hidden sm:block h-8 w-px ${isDark ? 'bg-white/20' : 'bg-slate-300'}`} />
 
                         <Link
                             to="/manager"
-                            className={`px-4 py-2 border-2 font-bold uppercase text-xs tracking-wide transition-all hover:scale-105 ${isDark
+                            className={`px-2 sm:px-4 py-1.5 sm:py-2 border-2 font-bold uppercase text-xs tracking-wide transition-all hover:scale-105 ${isDark
                                 ? 'border-white/20 text-white hover:bg-white hover:text-slate-900'
                                 : 'border-slate-900 text-slate-900 hover:bg-slate-900 hover:text-white'
                                 }`}
@@ -56,7 +56,7 @@ const Header: React.FC<HeaderProps> = ({
                     </div>
 
                     {/* Right Side */}
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-2 sm:gap-3">
                         {managerData ? (
                             <ManagerInfo
                                 managerData={managerData}

@@ -110,7 +110,7 @@ const FPLChatbot = () => {
         clearManager={clearManager}
       />
 
-      <div className="max-w-4xl mx-auto px-6 py-8 flex flex-col min-h-[calc(100vh-72px)]">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 py-4 sm:py-8 flex flex-col min-h-[calc(100vh-72px)]">
         {messages.length === 0 ? (
           <WelcomeScreen
             managerName={managerData?.name}

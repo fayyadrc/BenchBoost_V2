@@ -26,20 +26,20 @@ const SuggestionCard: React.FC<SuggestionCardProps> = ({
             whileHover={{ y: -2 }}
             whileTap={{ scale: 0.98 }}
             onClick={onClick}
-            className={`group cursor-pointer text-left border-l-4 p-4 transition-all ${isDark
-                    ? 'bg-slate-900 hover:bg-slate-800 border-white/20'
-                    : 'bg-white hover:bg-slate-50 border-slate-900'
+            className={`group cursor-pointer text-left border-l-4 p-3 sm:p-4 transition-all ${isDark
+                ? 'bg-slate-900 hover:bg-slate-800 border-white/20'
+                : 'bg-white hover:bg-slate-50 border-slate-900'
                 }`}
             style={{ borderLeftColor: color }}
         >
-            <div className="flex items-start gap-3">
+            <div className="flex items-start gap-2 sm:gap-3">
                 <div
-                    className="flex items-center justify-center w-8 h-8 shrink-0"
+                    className="flex items-center justify-center w-7 sm:w-8 h-7 sm:h-8 shrink-0"
                     style={{ backgroundColor: color }}
                 >
-                    <Icon className="w-4 h-4 text-white" />
+                    <Icon className="w-3.5 sm:w-4 h-3.5 sm:h-4 text-white" />
                 </div>
-                <p className={`text-sm font-bold leading-tight ${isDark ? 'text-white/90' : 'text-slate-700'}`}>
+                <p className={`text-xs sm:text-sm font-bold leading-tight ${isDark ? 'text-white/90' : 'text-slate-700'}`}>
                     {text}
                 </p>
             </div>

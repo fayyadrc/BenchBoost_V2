@@ -34,16 +34,16 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
         >
             {/* Greeting - Brutalist */}
             <motion.div
-                className="mb-12"
+                className="mb-6 sm:mb-12"
                 initial={{ opacity: 0, y: -20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.2, duration: 0.5 }}
             >
-                <div className={`border-l-4 pl-4 ${isDark ? '' : 'border-blue-600'}`} style={isDark ? { borderLeftColor: '#003566' } : {}}>
-                    <h2 className={`text-4xl font-black uppercase tracking-tighter ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                <div className={`border-l-4 pl-3 sm:pl-4 ${isDark ? '' : 'border-blue-600'}`} style={isDark ? { borderLeftColor: '#003566' } : {}}>
+                    <h2 className={`text-2xl sm:text-4xl font-black uppercase tracking-tighter ${isDark ? 'text-white' : 'text-slate-900'}`}>
                         Hello,
                     </h2>
-                    <p className={`text-2xl font-bold uppercase ${isDark ? 'text-white/60' : 'text-slate-500'}`}>
+                    <p className={`text-lg sm:text-2xl font-bold uppercase ${isDark ? 'text-white/60' : 'text-slate-500'}`}>
                         {managerName?.split(' ')[0] || 'Manager'}
                     </p>
                 </div>
@@ -54,7 +54,7 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
             {/* Suggestions - Compact Cards */}
             {showSuggestions && (
                 <motion.div
-                    className="grid grid-cols-1 md:grid-cols-3 gap-3 w-full mb-8"
+                    className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 sm:gap-3 w-full mb-4 sm:mb-8"
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ delay: 0.4, duration: 0.5 }}
