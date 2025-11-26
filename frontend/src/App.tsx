@@ -4,8 +4,9 @@ import { Send, Users, TrendingUp, BarChart3, Target, Calendar, Zap, Loader, User
 import { motion, AnimatePresence } from 'framer-motion';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import { ask, getOrCreateSessionId, getManagerInfo, getSavedManagerId } from './api/client';
-import type { ManagerData } from './api/client';
+import { ask, getOrCreateSessionId, getSavedManagerId } from './api/client';
+import { useManager } from './context/ManagerContext';
+
 
 type Message = {
   role: 'user' | 'assistant';
@@ -29,11 +30,16 @@ const FPLChatbot = () => {
     return 'dark';
   });
   
-  // Manager state
-  const [managerId, setManagerId] = React.useState<string>('');
-  const [managerData, setManagerData] = React.useState<ManagerData | null>(null);
-  const [managerLoading, setManagerLoading] = React.useState<boolean>(false);
-  const [managerError, setManagerError] = React.useState<string>('');
+  // Manager state from shared context
+  const {
+    managerId,
+    setManagerId,
+    managerData,
+    isLoading: managerLoading,
+    error: managerError,
+    handleManagerSubmit,
+    clearManager,
+  } = useManager();
 
   const suggestions: Array<{ icon: IconComponent; text: string }> = [
     { icon: Users, text: 'Who should I captain this gameweek?' },
@@ -104,47 +110,6 @@ const FPLChatbot = () => {
     }
   };
 
-  const handleManagerSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!managerId.trim() || managerLoading) return;
-    
-    setManagerLoading(true);
-    setManagerError('');
-    
-    try {
-      const id = parseInt(managerId.trim(), 10);
-      if (isNaN(id)) {
-        throw new Error('Please enter a valid numeric ID');
-      }
-      const data = await getManagerInfo(id);
-      setManagerData(data);
-      localStorage.setItem('fpl_manager_id', managerId.trim());
-    } catch (err: any) {
-      setManagerError(err?.message || 'Failed to fetch manager data');
-      setManagerData(null);
-    } finally {
-      setManagerLoading(false);
-    }
-  };
-
-  const clearManager = () => {
-    setManagerData(null);
-    setManagerId('');
-    setManagerError('');
-    localStorage.removeItem('fpl_manager_id');
-  };
-
-  // Load saved manager ID on mount
-  React.useEffect(() => {
-    const savedId = localStorage.getItem('fpl_manager_id');
-    if (savedId) {
-      setManagerId(savedId);
-      getManagerInfo(parseInt(savedId, 10))
-        .then(setManagerData)
-        .catch(() => localStorage.removeItem('fpl_manager_id'));
-    }
-  }, []);
-
   const isDark = theme === 'dark';
 
   return (
@@ -155,11 +120,9 @@ const FPLChatbot = () => {
           <div className="flex items-center justify-between gap-4">
             {/* Logo */}
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
-                <Zap className="w-5 h-5 text-white" />
-              </div>
-              <span className={`text-lg font-bold hidden sm:block ${isDark ? 'text-white' : 'text-slate-900'}`}>BenchBoost</span>
-              <Link
+<span className={`text-lg font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                  BenchBoost.
+                </span>              <Link
                 to="/manager"
                 className={`ml-4 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
                   isDark 
@@ -197,7 +160,7 @@ const FPLChatbot = () => {
                     </div>
                     <div className="flex items-center gap-1">
                       <TrendingUp className="w-3.5 h-3.5 text-green-400" />
-                      <span className={isDark ? 'text-white/80' : 'text-slate-600'}>{managerData.overall_points} pts</span>
+                      <span className={isDark ? 'text-white/80' : 'text-slate-600'}>{managerData.gameweek_points} pts</span>
                     </div>
                     <div className="flex items-center gap-1">
                       <Wallet className="w-3.5 h-3.5 text-emerald-400" />
