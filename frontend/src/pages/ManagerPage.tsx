@@ -2,8 +2,8 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  User, Trophy, TrendingUp, Wallet, Zap, Loader, X, Moon, Sun,
-  ArrowLeft, Users, Star, Armchair, RefreshCw, Coins, Award
+  User, Trophy, TrendingUp, Wallet, Loader, X, Moon, Sun,
+  ArrowLeft, Shield, Target, Activity, Minus, RefreshCw,
 } from 'lucide-react';
 import { useManager } from '../context/ManagerContext';
 import type { PlayerPick } from '../api/client';
@@ -16,7 +16,6 @@ const ManagerPage: React.FC = () => {
     return 'dark';
   });
 
-  // Manager state from shared context
   const {
     managerId,
     setManagerId,
@@ -38,7 +37,6 @@ const ManagerPage: React.FC = () => {
     localStorage.setItem('fpl_theme', newTheme);
   };
 
-
   React.useEffect(() => {
     if (theme === 'light') {
       document.documentElement.classList.add('light');
@@ -47,220 +45,252 @@ const ManagerPage: React.FC = () => {
     }
   }, [theme]);
 
-  const positionColors: Record<string, string> = {
-    GKP: 'bg-yellow-500',
-    DEF: 'bg-green-500',
-    MID: 'bg-blue-500',
-    FWD: 'bg-red-500',
+  // Position styling with unique approach
+  const getPositionStyle = (pos: string) => {
+    const styles = {
+      GKP: { bg: '#FF6B35', border: '#FF8C61', text: 'GK' },
+      DEF: { bg: '#004E89', border: '#1A6FA8', text: 'DF' },
+      MID: { bg: '#00A878', border: '#2DBB94', text: 'MD' },
+      FWD: { bg: '#E63946', border: '#F15A63', text: 'FW' },
+    };
+    return styles[pos as keyof typeof styles] || styles.MID;
   };
 
-  // Formation View Component
+  // Tactical Formation View - More like a real match analysis
   const FormationView: React.FC<{ players: PlayerPick[]; isDark: boolean }> = ({ players, isDark }) => {
-    // Group players by position
     const gkp = players.filter(p => p.position_name === 'GKP');
     const def = players.filter(p => p.position_name === 'DEF');
     const mid = players.filter(p => p.position_name === 'MID');
     const fwd = players.filter(p => p.position_name === 'FWD');
 
-    const FormationPlayer: React.FC<{ player: PlayerPick }> = ({ player }) => (
-      <div className="flex flex-col items-center">
-        <div className={`relative w-14 h-14 rounded-full flex items-center justify-center text-white font-bold text-sm ${
-          positionColors[player.position_name || 'MID'] || 'bg-slate-500'
-        } ${player.is_captain ? 'ring-2 ring-yellow-400' : ''} ${player.is_vice_captain ? 'ring-2 ring-slate-400' : ''}`}>
-          {player.points}
-          {(player.is_captain || player.is_vice_captain) && (
-            <div className={`absolute -top-1 -right-1 w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold ${
-              player.is_captain ? 'bg-yellow-500 text-black' : 'bg-slate-500 text-white'
-            }`}>
-              {player.is_captain ? 'C' : 'V'}
+    const TacticalPlayer: React.FC<{ player: PlayerPick; index: number }> = ({ player, index }) => {
+      const posStyle = getPositionStyle(player.position_name || 'MID');
+
+      return (
+        <motion.div
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: index * 0.05 }}
+          className="relative flex flex-col items-center group"
+        >
+          {/* Connection line effect */}
+          <div className={`absolute -bottom-8 left-1/2 w-0.5 h-8 ${isDark ? 'bg-white/10' : 'bg-slate-300'
+            } group-hover:bg-blue-500 transition-colors`} />
+
+          {/* Player circle */}
+          <div className="relative">
+            <div
+              className="w-16 h-16 rounded-sm rotate-45 flex items-center justify-center shadow-lg transition-all group-hover:scale-110"
+              style={{ backgroundColor: posStyle.bg }}
+            >
+              <div className="-rotate-45 text-center">
+                <div className="text-white font-black text-xl leading-none">
+                  {player.points}
+                </div>
+                <div className="text-white/80 text-[9px] font-bold uppercase tracking-wider">
+                  {posStyle.text}
+                </div>
+              </div>
             </div>
-          )}
-        </div>
-        <p className={`text-xs font-medium mt-1 text-center truncate max-w-[80px] ${isDark ? 'text-white' : 'text-slate-900'}`}>
-          {player.player_name}
-        </p>
-        <p className={`text-[10px] ${isDark ? 'text-white/60' : 'text-slate-500'}`}>
-          {player.team_short}
-        </p>
-      </div>
-    );
+
+            {/* Captain badge */}
+            {player.is_captain && (
+              <div className="absolute -top-1 -right-1 w-5 h-5 bg-yellow-400 text-black font-black text-xs flex items-center justify-center rounded-sm shadow-md">
+                C
+              </div>
+            )}
+            {player.is_vice_captain && (
+              <div className="absolute -top-1 -right-1 w-5 h-5 bg-slate-400 text-white font-black text-xs flex items-center justify-center rounded-sm shadow-md">
+                V
+              </div>
+            )}
+          </div>
+
+          {/* Player name */}
+          <div className="mt-2 text-center max-w-[90px]">
+            <p className={`text-xs font-bold uppercase tracking-tight truncate ${isDark ? 'text-white' : 'text-slate-900'
+              }`}>
+              {player.player_name?.split(' ').pop()}
+            </p>
+            <p className={`text-[10px] font-medium ${isDark ? 'text-white/50' : 'text-slate-500'
+              }`}>
+              {player.team_short}
+            </p>
+          </div>
+        </motion.div>
+      );
+    };
 
     return (
-      <div className="space-y-6">
-        {/* Goalkeeper */}
-        <div className="flex justify-center">
-          {gkp.map(player => (
-            <FormationPlayer key={player.element} player={player} />
-          ))}
+      <div className="relative py-8">
+        {/* Tactical grid lines */}
+        <div className="absolute inset-0 opacity-20">
+          <div className={`absolute top-0 left-0 right-0 h-px ${isDark ? 'bg-white' : 'bg-slate-400'}`} />
+          <div className={`absolute bottom-0 left-0 right-0 h-px ${isDark ? 'bg-white' : 'bg-slate-400'}`} />
+          <div className={`absolute top-0 bottom-0 left-1/2 w-px ${isDark ? 'bg-white' : 'bg-slate-400'}`} />
         </div>
-        {/* Defenders */}
-        <div className="flex justify-center gap-6">
-          {def.map(player => (
-            <FormationPlayer key={player.element} player={player} />
-          ))}
-        </div>
-        {/* Midfielders */}
-        <div className="flex justify-center gap-6">
-          {mid.map(player => (
-            <FormationPlayer key={player.element} player={player} />
-          ))}
-        </div>
-        {/* Forwards */}
-        <div className="flex justify-center gap-8">
-          {fwd.map(player => (
-            <FormationPlayer key={player.element} player={player} />
-          ))}
+
+        <div className="relative space-y-12">
+          {/* Forwards */}
+          <div className="flex justify-center gap-12">
+            {fwd.map((player, i) => (
+              <TacticalPlayer key={player.element} player={player} index={i} />
+            ))}
+          </div>
+
+          {/* Midfielders */}
+          <div className="flex justify-center gap-8">
+            {mid.map((player, i) => (
+              <TacticalPlayer key={player.element} player={player} index={i + fwd.length} />
+            ))}
+          </div>
+
+          {/* Defenders */}
+          <div className="flex justify-center gap-6">
+            {def.map((player, i) => (
+              <TacticalPlayer key={player.element} player={player} index={i + fwd.length + mid.length} />
+            ))}
+          </div>
+
+          {/* Goalkeeper */}
+          <div className="flex justify-center">
+            {gkp.map((player, i) => (
+              <TacticalPlayer key={player.element} player={player} index={i + fwd.length + mid.length + def.length} />
+            ))}
+          </div>
         </div>
       </div>
     );
   };
 
-  const PlayerCard: React.FC<{ player: PlayerPick; isBench?: boolean; isDark?: boolean }> = ({ player, isBench = false, isDark: isDarkProp }) => {
-    const dark = isDarkProp ?? isDark;
+  // Bench player card - more compact and data-focused
+  const BenchPlayer: React.FC<{ player: PlayerPick; index: number }> = ({ player, index }) => {
+    const posStyle = getPositionStyle(player.position_name || 'MID');
+
     return (
       <motion.div
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        className={`relative rounded-xl p-3 border transition-all ${
-          dark
-            ? 'bg-white/5 border-white/10 hover:bg-white/10'
-            : 'bg-white border-slate-200 hover:bg-slate-50 shadow-sm'
-        } ${isBench ? 'opacity-70' : ''}`}
+        initial={{ opacity: 0, x: -20 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ delay: index * 0.1 }}
+        className={`flex items-center gap-3 p-2 border-l-4 ${isDark ? 'bg-white/5 hover:bg-white/10' : 'bg-slate-50 hover:bg-slate-100'
+          } transition-colors`}
+        style={{ borderLeftColor: posStyle.bg }}
       >
-        {/* Captain/Vice Badge */}
-        {(player.is_captain || player.is_vice_captain) && (
-          <div className={`absolute -top-2 -right-2 w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${
-            player.is_captain ? 'bg-yellow-500 text-black' : 'bg-slate-500 text-white'
-          }`}>
-            {player.is_captain ? 'C' : 'V'}
-          </div>
-        )}
+        <div className="flex items-center justify-center w-8 h-8 rounded-sm text-white font-bold text-sm"
+          style={{ backgroundColor: posStyle.bg }}>
+          {player.points}
+        </div>
 
-        <div className="flex items-center gap-3">
-          {/* Position Badge */}
-          <div className={`w-10 h-10 rounded-lg flex items-center justify-center text-white font-bold text-xs ${
-            positionColors[player.position_name || 'MID'] || 'bg-slate-500'
-          }`}>
-            {player.position_name || '?'}
-          </div>
+        <div className="flex-1 min-w-0">
+          <p className={`text-sm font-bold truncate ${isDark ? 'text-white' : 'text-slate-900'}`}>
+            {player.player_name}
+          </p>
+          <p className={`text-xs ${isDark ? 'text-white/50' : 'text-slate-500'}`}>
+            {player.team_short} • £{player.price?.toFixed(1)}m
+          </p>
+        </div>
 
-          {/* Player Info */}
-          <div className="flex-1 min-w-0">
-            <p className={`font-semibold ${dark ? 'text-white' : 'text-slate-900'}`}>
-              {player.player_name}
-            </p>
-            <p className={`text-xs ${dark ? 'text-white/60' : 'text-slate-500'}`}>
-              {player.team_short} • £{player.price?.toFixed(1)}m
-            </p>
-          </div>
-
-          {/* Points */}
-          <div className="text-right">
-            <p className={`text-lg font-bold ${
-              player.points > 0 
-                ? dark ? 'text-green-400' : 'text-green-600'
-                : dark ? 'text-white/60' : 'text-slate-400'
-            }`}>
-              {player.points}
-            </p>
-            <p className={`text-xs ${dark ? 'text-white/40' : 'text-slate-400'}`}>pts</p>
-          </div>
+        <div className={`text-xs font-mono ${isDark ? 'text-white/40' : 'text-slate-400'}`}>
+          {posStyle.text}
         </div>
       </motion.div>
     );
   };
 
   return (
-    <div className={`min-h-screen bg-background text-foreground font-sans transition-colors duration-300`}>
-      {/* Navbar */}
-      <nav className={`sticky top-0 z-50 backdrop-blur-md border-b transition-colors duration-300 ${
-        isDark ? 'bg-black/40 border-white/10' : 'bg-white/80 border-slate-200'
+    <div className={`min-h-screen transition-colors duration-300 ${isDark ? 'bg-slate-950' : 'bg-slate-50'
       }`}>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
-          <div className="flex items-center justify-between gap-4">
-            {/* Logo & Back */}
-            <div className="flex items-center gap-3">
+      {/* Header - More editorial/magazine style */}
+      <header className={`border-b-2 ${isDark ? 'border-white/20 bg-slate-950' : 'border-slate-900 bg-white'}`}>
+        <div className="max-w-7xl mx-auto px-6 py-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-6">
               <Link
                 to="/"
-                className={`p-2 rounded-lg transition-colors ${
-                  isDark ? 'hover:bg-white/10' : 'hover:bg-slate-100'
-                }`}
+                className={`flex items-center gap-2 font-bold uppercase tracking-tight hover:opacity-70 transition-opacity ${isDark ? 'text-white' : 'text-slate-900'
+                  }`}
               >
-                <ArrowLeft className={`w-5 h-5 ${isDark ? 'text-white' : 'text-slate-700'}`} />
+                <ArrowLeft className="w-5 h-5" />
+                <span className="hidden sm:inline">Back</span>
               </Link>
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
-                  <Zap className="w-5 h-5 text-white" />
-                </div>
-                <span className={`text-lg font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>
-                  Manager Dashboard
-                </span>
-              </div>
+
+              <div className={`h-8 w-px ${isDark ? 'bg-white/20' : 'bg-slate-300'}`} />
+
+              <h1 className={`text-2xl font-black uppercase tracking-tighter ${isDark ? 'text-white' : 'text-slate-900'
+                }`}>
+                Manager <span className={isDark ? 'text-blue-600' : 'text-blue-600'} style={isDark ? { color: '#003566' } : {}}>Data</span>
+              </h1>
             </div>
 
-            {/* Theme Toggle */}
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
+            <button
               onClick={toggleTheme}
-              className={`p-2 rounded-lg transition-colors ${
-                isDark ? 'bg-white/10 hover:bg-white/20 text-white' : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
-              }`}
-              title={`Switch to ${isDark ? 'light' : 'dark'} mode`}
+              className={`p-2 rounded-sm border-2 transition-all hover:scale-105 ${isDark
+                ? 'border-white/20 text-white hover:border-white/40'
+                : 'border-slate-900 text-slate-900 hover:bg-slate-900 hover:text-white'
+                }`}
             >
               {isDark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
-            </motion.button>
+            </button>
           </div>
         </div>
-      </nav>
+      </header>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Manager ID Input (if no manager loaded) */}
+      <div className="max-w-7xl mx-auto px-6 py-8">
+        {/* Manager ID Input */}
         {!managerData && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             className="flex flex-col items-center justify-center min-h-[60vh]"
           >
-            <div className={`w-20 h-20 rounded-2xl flex items-center justify-center mb-6 ${
-              isDark ? 'bg-white/10' : 'bg-slate-100'
-            }`}>
-              <User className={`w-10 h-10 ${isDark ? 'text-white/60' : 'text-slate-400'}`} />
+            <div className={`mb-8 p-8 border-4 ${isDark ? 'border-white/20' : 'border-slate-900'
+              }`}>
+              <User className={`w-16 h-16 ${isDark ? 'text-white/60' : 'text-slate-400'}`} />
             </div>
-            <h2 className={`text-2xl font-bold mb-2 ${isDark ? 'text-white' : 'text-slate-900'}`}>
-              Enter Your FPL Manager ID
+
+            <h2 className={`text-4xl font-black uppercase tracking-tighter mb-3 ${isDark ? 'text-white' : 'text-slate-900'
+              }`}>
+              Load Manager
             </h2>
-            <p className={`text-sm mb-6 ${isDark ? 'text-white/60' : 'text-slate-500'}`}>
-              Find your ID in the FPL website URL when viewing your team
+            <p className={`text-sm uppercase tracking-wide mb-8 ${isDark ? 'text-white/50' : 'text-slate-500'
+              }`}>
+              Enter your FPL ID to begin analysis
             </p>
 
-            <form onSubmit={handleManagerSubmit} className="flex flex-col items-center gap-4 w-full max-w-sm">
+            <form onSubmit={handleManagerSubmit} className="w-full max-w-md space-y-4">
               <input
                 type="text"
                 value={managerId}
                 onChange={(e) => setManagerId(e.target.value)}
-                placeholder="e.g., 1234567"
-                className={`w-full border rounded-xl px-4 py-3 text-center text-lg focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all ${
-                  isDark
-                    ? 'bg-white/10 border-white/20 text-white placeholder-white/40'
-                    : 'bg-white border-slate-300 text-slate-900 placeholder-slate-400'
-                }`}
+                placeholder="Manager ID"
+                className={`w-full border-2 px-6 py-4 text-center text-xl font-bold uppercase tracking-wider focus:outline-none transition-all ${isDark
+                  ? 'bg-slate-900 border-white/20 text-white placeholder-white/30'
+                  : 'bg-white border-slate-900 text-slate-900 placeholder-slate-400 focus:border-blue-600'
+                  }`}
+                style={isDark ? { borderColor: 'rgba(255, 255, 255, 0.2)' } : {}}
+                onFocus={(e) => isDark && (e.target.style.borderColor = '#003566')}
+                onBlur={(e) => isDark && (e.target.style.borderColor = 'rgba(255, 255, 255, 0.2)')}
                 disabled={managerLoading}
               />
+
               <button
                 type="submit"
                 disabled={!managerId.trim() || managerLoading}
-                className={`w-full bg-blue-600 hover:bg-blue-500 text-white px-6 py-3 rounded-xl font-semibold transition-colors flex items-center justify-center gap-2 ${
-                  isDark ? 'disabled:bg-white/10 disabled:text-white/40' : 'disabled:bg-slate-200 disabled:text-slate-400'
-                }`}
+                className={`w-full py-4 font-black uppercase tracking-wider transition-all disabled:opacity-30 ${isDark
+                  ? 'text-white'
+                  : 'bg-slate-900 text-white hover:bg-slate-800'
+                  }`}
+                style={isDark ? { backgroundColor: '#003566' } : {}}
+                onMouseEnter={(e) => isDark && !managerLoading && managerId.trim() && (e.currentTarget.style.backgroundColor = '#004080')}
+                onMouseLeave={(e) => isDark && (e.currentTarget.style.backgroundColor = '#003566')}
               >
                 {managerLoading ? (
-                  <>
-                    <Loader className="w-5 h-5 animate-spin" />
-                    Loading...
-                  </>
+                  <span className="flex items-center justify-center gap-2">
+                    <RefreshCw className="w-5 h-5 animate-spin" />
+                    Loading
+                  </span>
                 ) : (
-                  'Load Manager Data'
+                  'Analyze'
                 )}
               </button>
             </form>
@@ -268,10 +298,10 @@ const ManagerPage: React.FC = () => {
             <AnimatePresence>
               {managerError && (
                 <motion.p
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -10 }}
-                  className="text-red-400 text-sm mt-4"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  className="text-red-500 text-sm mt-4 font-bold uppercase"
                 >
                   {managerError}
                 </motion.p>
@@ -280,184 +310,216 @@ const ManagerPage: React.FC = () => {
           </motion.div>
         )}
 
-        {/* Manager Data Display */}
+        {/* Manager Dashboard */}
         {managerData && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             className="space-y-6"
           >
-            {/* Two Column Layout */}
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-              {/* Left Column - Manager Info, Leagues & Stats */}
-              <div className="lg:col-span-4 space-y-6">
-                {/* Manager Header */}
-                <div className={`rounded-2xl border p-6 ${
-                  isDark ? 'bg-white/5 border-white/10' : 'bg-white border-slate-200 shadow-sm'
-                }`}>
-                  <div className="flex flex-col gap-4">
-                    <div className="flex items-center gap-4">
-                      <div className={`w-16 h-16 rounded-2xl flex items-center justify-center ${
-                        isDark ? 'bg-gradient-to-br from-blue-500/20 to-purple-500/20' : 'bg-gradient-to-br from-blue-100 to-purple-100'
+            {/* Manager Header - Asymmetric layout */}
+            <div className={`border-2 p-6 ${isDark ? 'border-white/20 bg-slate-900' : 'border-slate-900 bg-white'
+              }`}>
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+                <div className="flex-1">
+                  <div className="flex items-baseline gap-3 mb-2">
+                    <h2 className={`text-3xl font-black uppercase tracking-tighter ${isDark ? 'text-white' : 'text-slate-900'
                       }`}>
-                        <User className={`w-8 h-8 ${isDark ? 'text-blue-400' : 'text-blue-600'}`} />
-                      </div>
-                      <div className="flex-1">
-                        <h1 className={`text-xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>
-                          {managerData.team_name}
-                        </h1>
-                        <p className={`text-sm ${isDark ? 'text-white/60' : 'text-slate-500'}`}>
-                          {managerData.name}
-                        </p>
-                      </div>
-                    </div>
-                    <button
-                      onClick={clearManager}
-                      className={`flex items-center justify-center gap-2 px-4 py-2 rounded-lg transition-colors w-full ${
-                        isDark ? 'bg-white/10 hover:bg-white/20 text-white' : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
-                      }`}
-                    >
-                      <X className="w-4 h-4" />
-                      Change Manager
-                    </button>
+                      {managerData.team_name}
+                    </h2>
+                    <span className={`text-sm font-bold uppercase ${isDark ? 'text-white/50' : 'text-slate-500'
+                      }`}>
+                      {managerData.name}
+                    </span>
                   </div>
 
-                  {/* Stats Grid */}
-                  <div className="grid grid-cols-2 gap-3 mt-6">
-                    <div className={`rounded-xl p-3 ${isDark ? 'bg-white/5' : 'bg-slate-50'}`}>
-                      <div className="flex items-center gap-2 mb-1">
-                        <Trophy className="w-3.5 h-3.5 text-yellow-500" />
-                        <span className={`text-xs ${isDark ? 'text-white/60' : 'text-slate-500'}`}>Rank</span>
-                      </div>
-                      <p className={`text-lg font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                  {/* Stats in a row - brutalist style */}
+                  <div className="flex flex-wrap gap-4 mt-4">
+                    <div className={`flex items-center gap-2 px-3 py-1 border ${isDark ? 'border-yellow-500/50 bg-yellow-500/10' : 'border-yellow-600 bg-yellow-50'
+                      }`}>
+                      <Trophy className="w-4 h-4 text-yellow-500" />
+                      <span className={`text-xs font-bold uppercase ${isDark ? 'text-white/60' : 'text-slate-600'}`}>
+                        Rank
+                      </span>
+                      <span className={`text-lg font-black ${isDark ? 'text-white' : 'text-slate-900'}`}>
                         {managerData.overall_rank?.toLocaleString() ?? 'N/A'}
-                      </p>
+                      </span>
                     </div>
 
-                    <div className={`rounded-xl p-3 ${isDark ? 'bg-white/5' : 'bg-slate-50'}`}>
-                      <div className="flex items-center gap-2 mb-1">
-                        <TrendingUp className="w-3.5 h-3.5 text-green-500" />
-                        <span className={`text-xs ${isDark ? 'text-white/60' : 'text-slate-500'}`}>Points</span>
-                      </div>
-                      <p className={`text-lg font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                    <div className={`flex items-center gap-2 px-3 py-1 border ${isDark ? 'border-green-500/50 bg-green-500/10' : 'border-green-600 bg-green-50'
+                      }`}>
+                      <TrendingUp className="w-4 h-4 text-green-500" />
+                      <span className={`text-xs font-bold uppercase ${isDark ? 'text-white/60' : 'text-slate-600'}`}>
+                        Points
+                      </span>
+                      <span className={`text-lg font-black ${isDark ? 'text-white' : 'text-slate-900'}`}>
                         {managerData.overall_points}
-                      </p>
+                      </span>
                     </div>
 
-                    <div className={`rounded-xl p-3 ${isDark ? 'bg-white/5' : 'bg-slate-50'}`}>
-                      <div className="flex items-center gap-2 mb-1">
-                        <Wallet className="w-3.5 h-3.5 text-emerald-500" />
-                        <span className={`text-xs ${isDark ? 'text-white/60' : 'text-slate-500'}`}>Value</span>
-                      </div>
-                      <p className={`text-lg font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                    <div
+                      className={`flex items-center gap-2 px-3 py-1 border ${isDark ? 'border-white/20' : 'border-blue-600 bg-blue-50'}`}
+                      style={isDark ? { backgroundColor: 'rgba(0, 53, 102, 0.1)', borderColor: 'rgba(0, 53, 102, 0.5)' } : {}}
+                    >
+                      <Wallet className="w-4 h-4 text-blue-500" />
+                      <span className={`text-xs font-bold uppercase ${isDark ? 'text-white/60' : 'text-slate-600'}`}>
+                        Value
+                      </span>
+                      <span className={`text-lg font-black ${isDark ? 'text-white' : 'text-slate-900'}`}>
                         £{managerData.team_value.toFixed(1)}m
-                      </p>
+                      </span>
                     </div>
 
-                    <div className={`rounded-xl p-3 ${isDark ? 'bg-white/5' : 'bg-slate-50'}`}>
-                      <div className="flex items-center gap-2 mb-1">
-                        <Coins className="w-3.5 h-3.5 text-blue-500" />
-                        <span className={`text-xs ${isDark ? 'text-white/60' : 'text-slate-500'}`}>Bank</span>
-                      </div>
-                      <p className={`text-lg font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                    <div className={`flex items-center gap-2 px-3 py-1 border ${isDark ? 'border-purple-500/50 bg-purple-500/10' : 'border-purple-600 bg-purple-50'
+                      }`}>
+                      <Activity className="w-4 h-4 text-purple-500" />
+                      <span className={`text-xs font-bold uppercase ${isDark ? 'text-white/60' : 'text-slate-600'}`}>
+                        Bank
+                      </span>
+                      <span className={`text-lg font-black ${isDark ? 'text-white' : 'text-slate-900'}`}>
                         £{managerData.bank.toFixed(1)}m
-                      </p>
+                      </span>
                     </div>
                   </div>
+                </div>
 
-                  {/* Gameweek Stats Section */}
-                  {managerTeam && (
-                    <>
-                      <div className={`flex items-center justify-between mt-6 mb-3`}>
-                        <div className="flex items-center gap-2">
-                          <Users className={`w-4 h-4 ${isDark ? 'text-blue-400' : 'text-blue-600'}`} />
-                          <h3 className={`font-semibold ${isDark ? 'text-white' : 'text-slate-900'}`}>
-                            Gameweek {managerTeam.event}
-                          </h3>
-                          {managerTeam.active_chip && (
-                            <span className="px-2 py-0.5 bg-purple-500 text-white text-xs font-bold rounded-full uppercase">
-                              {managerTeam.active_chip}
-                            </span>
-                          )}
-                        </div>
-                        <motion.button
-                          whileHover={{ scale: 1.05 }}
-                          whileTap={{ scale: 0.95 }}
+                <button
+                  onClick={clearManager}
+                  className={`px-6 py-3 border-2 font-bold uppercase tracking-wide transition-all hover:scale-105 ${isDark
+                    ? 'border-white/20 text-white hover:bg-white hover:text-slate-900'
+                    : 'border-slate-900 text-slate-900 hover:bg-slate-900 hover:text-white'
+                    }`}
+                >
+                  <X className="w-4 h-4 inline mr-2" />
+                  Change
+                </button>
+              </div>
+            </div>
+
+            {/* Main Grid - Asymmetric */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              {/* Left Column - Gameweek Info */}
+              <div className="lg:col-span-1 space-y-6">
+                {managerTeam && (
+                  <>
+                    {/* Gameweek Header */}
+                    <div
+                      className={`border-2 p-6 ${isDark ? 'border-white/20' : 'border-blue-600 bg-blue-50'}`}
+                      style={isDark ? { backgroundColor: 'rgba(0, 53, 102, 0.1)', borderColor: 'rgba(0, 53, 102, 0.5)' } : {}}
+                    >
+                      <div className="flex items-center justify-between mb-4">
+                        <h3 className={`text-2xl font-black uppercase ${isDark ? 'text-white' : 'text-slate-900'
+                          }`}>
+                          GW {managerTeam.event}
+                        </h3>
+                        <button
                           onClick={refreshTeam}
                           disabled={teamLoading}
-                          className={`p-2 rounded-lg transition-colors ${
-                            isDark ? 'bg-white/10 hover:bg-white/20' : 'bg-slate-100 hover:bg-slate-200'
-                          }`}
+                          className={`p-2 border transition-all ${isDark ? 'border-white/20 hover:bg-white/10' : 'border-slate-300 hover:bg-slate-100'
+                            }`}
                         >
-                          <RefreshCw className={`w-4 h-4 ${teamLoading ? 'animate-spin' : ''} ${
-                            isDark ? 'text-white' : 'text-slate-700'
-                          }`} />
-                        </motion.button>
+                          <Activity className={`w-4 h-4 ${teamLoading ? 'animate-spin' : ''}`} />
+                        </button>
                       </div>
 
-                      <div className="grid grid-cols-2 gap-3">
-                        <div className={`rounded-xl p-3 ${isDark ? 'bg-white/5' : 'bg-slate-50'}`}>
-                          <div className="flex items-center gap-2 mb-1">
-                            <Star className="w-3.5 h-3.5 text-yellow-500" />
-                            <span className={`text-xs ${isDark ? 'text-white/60' : 'text-slate-500'}`}>GW Points</span>
+                      <div className="space-y-3">
+                        <div>
+                          <div className={`text-xs font-bold uppercase mb-1 ${isDark ? 'text-white/60' : 'text-slate-600'
+                            }`}>
+                            Points
                           </div>
-                          <p className={`text-lg font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                          <div className={`text-5xl font-black ${isDark ? 'text-white' : 'text-slate-900'
+                            }`}>
                             {managerTeam.points}
-                          </p>
-                        </div>
-
-                        <div className={`rounded-xl p-3 ${isDark ? 'bg-white/5' : 'bg-slate-50'}`}>
-                          <div className="flex items-center gap-2 mb-1">
-                            <Trophy className="w-3.5 h-3.5 text-orange-500" />
-                            <span className={`text-xs ${isDark ? 'text-white/60' : 'text-slate-500'}`}>GW Rank</span>
                           </div>
-                          <p className={`text-lg font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>
-                            {managerTeam.rank?.toLocaleString() ?? 'N/A'}
-                          </p>
                         </div>
 
-                        <div className={`rounded-xl p-3 ${isDark ? 'bg-white/5' : 'bg-slate-50'}`}>
-                          <div className="flex items-center gap-2 mb-1">
-                            <RefreshCw className="w-3.5 h-3.5 text-purple-500" />
-                            <span className={`text-xs ${isDark ? 'text-white/60' : 'text-slate-500'}`}>Transfers</span>
+                        <div className="grid grid-cols-2 gap-3">
+                          <div>
+                            <div className={`text-xs font-bold uppercase mb-1 ${isDark ? 'text-white/60' : 'text-slate-600'
+                              }`}>
+                              Rank
+                            </div>
+                            <div className={`text-xl font-black ${isDark ? 'text-white' : 'text-slate-900'
+                              }`}>
+                              {managerTeam.rank?.toLocaleString() ?? 'N/A'}
+                            </div>
                           </div>
-                          <p className={`text-lg font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>
-                            {managerTeam.event_transfers}
-                            {managerTeam.event_transfers_cost > 0 && (
-                              <span className="text-red-400 text-sm ml-1">(-{managerTeam.event_transfers_cost})</span>
-                            )}
-                          </p>
+
+                          <div>
+                            <div className={`text-xs font-bold uppercase mb-1 ${isDark ? 'text-white/60' : 'text-slate-600'
+                              }`}>
+                              Transfers
+                            </div>
+                            <div className={`text-xl font-black ${isDark ? 'text-white' : 'text-slate-900'
+                              }`}>
+                              {managerTeam.event_transfers}
+                              {managerTeam.event_transfers_cost > 0 && (
+                                <span className="text-red-500 text-sm ml-1">
+                                  -{managerTeam.event_transfers_cost}
+                                </span>
+                              )}
+                            </div>
+                          </div>
                         </div>
 
-                            
+                        {managerTeam.active_chip && (
+                          <div className={`mt-4 p-2 border-2 text-center ${isDark ? 'border-purple-500 bg-purple-500/20' : 'border-purple-600 bg-purple-100'
+                            }`}>
+                            <span className="text-sm font-black uppercase text-purple-500">
+                              {managerTeam.active_chip}
+                            </span>
+                          </div>
+                        )}
                       </div>
-                    </>
-                  )}
-                </div>
+                    </div>
+
+                    {/* Bench */}
+                    <div className={`border-2 p-4 ${isDark ? 'border-white/20 bg-slate-900' : 'border-slate-900 bg-white'
+                      }`}>
+                      <h3 className={`text-sm font-black uppercase mb-4 flex items-center gap-2 ${isDark ? 'text-white/80' : 'text-slate-700'
+                        }`}>
+                        <Minus className="w-4 h-4" />
+                        Bench
+                      </h3>
+                      <div className="space-y-2">
+                        {managerTeam.bench.map((player, i) => (
+                          <BenchPlayer key={player.element} player={player} index={i} />
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Auto Subs Alert */}
+                    {managerTeam.automatic_subs.length > 0 && (
+                      <div className={`border-2 p-4 ${isDark ? 'border-orange-500 bg-orange-500/10' : 'border-orange-600 bg-orange-50'
+                        }`}>
+                        <p className="text-sm font-bold uppercase text-orange-500">
+                          {managerTeam.automatic_subs.length} Auto-Sub(s)
+                        </p>
+                      </div>
+                    )}
+                  </>
+                )}
 
                 {/* Leagues */}
                 {managerData.leagues.length > 0 && (
-                  <div className={`rounded-2xl border p-6 ${
-                    isDark ? 'bg-white/5 border-white/10' : 'bg-white border-slate-200 shadow-sm'
-                  }`}>
-                    <div className="flex items-center gap-2 mb-4">
-                      <Award className={`w-5 h-5 ${isDark ? 'text-purple-400' : 'text-purple-600'}`} />
-                      <h2 className={`text-lg font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>
-                        Leagues
-                      </h2>
-                    </div>
+                  <div className={`border-2 p-4 ${isDark ? 'border-white/20 bg-slate-900' : 'border-slate-900 bg-white'
+                    }`}>
+                    <h3 className={`text-sm font-black uppercase mb-4 ${isDark ? 'text-white/80' : 'text-slate-700'
+                      }`}>
+                      Leagues
+                    </h3>
                     <div className="space-y-2">
-                      {managerData.leagues.map((league) => (
+                      {managerData.leagues.slice(0, 5).map((league) => (
                         <div
                           key={league.id}
-                          className={`flex items-center justify-between p-3 rounded-xl ${
-                            isDark ? 'bg-white/5' : 'bg-slate-50'
-                          }`}
+                          className={`flex items-center justify-between p-2 border-l-2 ${isDark ? 'bg-white/5' : 'border-blue-600 bg-slate-50'}`}
+                          style={isDark ? { borderLeftColor: '#003566' } : {}}
                         >
-                          <span className={`font-medium text-sm ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                          <span className={`text-xs font-bold truncate flex-1 ${isDark ? 'text-white' : 'text-slate-900'}`}>
                             {league.name}
                           </span>
-                          <span className={`text-xs ${isDark ? 'text-white/60' : 'text-slate-500'}`}>
+                          <span className={`text-xs font-mono ml-2 ${isDark ? 'text-white/50' : 'text-slate-500'}`}>
                             #{league.rank.toLocaleString()}
                           </span>
                         </div>
@@ -465,73 +527,43 @@ const ManagerPage: React.FC = () => {
                     </div>
                   </div>
                 )}
-
-                {/* Auto Subs */}
-                {managerTeam && managerTeam.automatic_subs.length > 0 && (
-                  <div className={`rounded-2xl border p-4 ${
-                    isDark ? 'bg-orange-500/10 border-orange-500/20' : 'bg-orange-50 border-orange-200'
-                  }`}>
-                    <p className={`text-sm ${isDark ? 'text-orange-400' : 'text-orange-600'}`}>
-                      <strong>Auto-subs:</strong> {managerTeam.automatic_subs.length} substitution(s) made
-                    </p>
-                  </div>
-                )}
               </div>
 
-              {/* Right Column - Formation & Bench */}
-              <div className="lg:col-span-8 space-y-6">
+              {/* Right Column - Pitch */}
+              <div className="lg:col-span-2">
                 {managerTeam ? (
-                  <>
-                    {/* Football Pitch */}
-                    <div className={`rounded-2xl border p-6 ${
-                      isDark ? 'bg-gradient-to-b from-green-900/20 to-green-800/20 border-white/10' : 'bg-gradient-to-b from-green-50 to-green-100 border-slate-200 shadow-sm'
+                  <div className={`border-2 p-6 ${isDark ? 'border-white/20 bg-gradient-to-b from-green-950 to-green-900' : 'border-slate-900 bg-gradient-to-b from-green-100 to-green-200'
                     }`}>
-                      <div className="flex items-center justify-between mb-6">
-                        <div className="flex items-center gap-2">
-                          <Star className={`w-4 h-4 ${isDark ? 'text-yellow-400' : 'text-yellow-500'}`} />
-                          <h3 className={`font-semibold ${isDark ? 'text-white' : 'text-slate-900'}`}>
-                            Starting XI
-                          </h3>
-                        </div>
-                        <div className={`flex items-center gap-2 px-4 py-2 rounded-xl ${
-                          isDark ? 'bg-white/10' : 'bg-white/80 shadow-sm'
+                    <div className="flex items-center justify-between mb-6">
+                      <h3 className={`text-xl font-black uppercase flex items-center gap-2 ${isDark ? 'text-white' : 'text-slate-900'
                         }`}>
-                          <span className={`text-sm ${isDark ? 'text-white/60' : 'text-slate-500'}`}>GW Points</span>
-                          <span className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>
-                            {managerTeam.points}
-                          </span>
-                        </div>
+                        <Shield className="w-5 h-5" />
+                        Formation
+                      </h3>
+                      <div className={`px-4 py-2 border-2 ${isDark ? 'border-white/30 bg-white/10' : 'border-slate-900 bg-white'
+                        }`}>
+                        <span className={`text-sm font-bold uppercase ${isDark ? 'text-white/60' : 'text-slate-600'
+                          }`}>
+                          Total:{' '}
+                        </span>
+                        <span className={`text-2xl font-black ${isDark ? 'text-white' : 'text-slate-900'
+                          }`}>
+                          {managerTeam.points}
+                        </span>
                       </div>
-                      
-                      {/* Formation Display */}
-                      <FormationView players={managerTeam.starting_xi} isDark={isDark} />
                     </div>
 
-                    {/* Bench */}
-                    <div className={`rounded-2xl border p-6 ${
-                      isDark ? 'bg-white/5 border-white/10' : 'bg-white border-slate-200 shadow-sm'
-                    }`}>
-                      <div className="flex items-center gap-2 mb-4">
-                        <Armchair className={`w-4 h-4 ${isDark ? 'text-slate-400' : 'text-slate-500'}`} />
-                        <h3 className={`font-semibold ${isDark ? 'text-white/80' : 'text-slate-700'}`}>
-                          Bench
-                        </h3>
-                      </div>
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
-                        {managerTeam.bench.map((player) => (
-                          <PlayerCard key={player.element} player={player} isBench isDark={isDark} />
-                        ))}
-                      </div>
-                    </div>
-                  </>
+                    <FormationView players={managerTeam.starting_xi} isDark={isDark} />
+                  </div>
                 ) : (
-                  <div className={`rounded-2xl border p-12 flex items-center justify-center ${
-                    isDark ? 'bg-white/5 border-white/10' : 'bg-white border-slate-200 shadow-sm'
-                  }`}>
+                  <div className={`border-2 p-12 flex items-center justify-center ${isDark ? 'border-white/20 bg-slate-900' : 'border-slate-900 bg-white'
+                    }`}>
                     <div className="text-center">
-                      <Users className={`w-12 h-12 mx-auto mb-4 ${isDark ? 'text-white/20' : 'text-slate-300'}`} />
-                      <p className={`${isDark ? 'text-white/40' : 'text-slate-400'}`}>
-                        Loading team data...
+                      <Target className={`w-12 h-12 mx-auto mb-4 ${isDark ? 'text-white/20' : 'text-slate-300'
+                        }`} />
+                      <p className={`text-sm font-bold uppercase ${isDark ? 'text-white/40' : 'text-slate-400'
+                        }`}>
+                        Loading formation...
                       </p>
                     </div>
                   </div>
