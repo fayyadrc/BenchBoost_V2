@@ -366,3 +366,35 @@ def get_upcoming_fixtures_for_team(team_id: int, num_fixtures: int = 3) -> list:
                 break
                 
     return upcoming
+
+
+def get_cached_player_news(force_refresh: bool = False) -> list:
+    """
+    Get player news (injuries/price changes) with caching.
+    
+    Args:
+        force_refresh: Force a fresh scrape
+        
+    Returns:
+        List of news items
+    """
+    cache_key = "player_news_alerts"
+    
+    # Check cache first
+    if not force_refresh:
+        cached = _get_from_cache(cache_key)
+        if cached is not None:
+            return cached
+            
+    # If not in cache or forced refresh, fetch fresh data
+    try:
+        from .player_injury_status import scrape_fpl_alerts
+        logger.info("Scraping fresh player news...")
+        news = scrape_fpl_alerts()
+        
+        # Cache for 15 minutes (900 seconds)
+        _set_in_cache(cache_key, news, ttl_seconds=10800)
+        return news
+    except Exception as e:
+        logger.error(f"Failed to scrape player news: {e}")
+        return []

@@ -6,6 +6,7 @@ import {
   ArrowLeft, Shield, Target, Activity, Minus, RefreshCw, BarChart2, AlertTriangle,
 } from 'lucide-react';
 import { useManager } from '../context/ManagerContext';
+import { NewsDropdown } from '../components/NewsDropdown';
 import type { PlayerPick } from '../api/client';
 
 // --- Helper Functions ---
@@ -588,15 +589,19 @@ const ManagerPage: React.FC = () => {
               </h1>
             </div>
 
-            <button
-              onClick={toggleTheme}
-              className={`p-2 rounded-sm border-2 transition-all hover:scale-105 ${isDark
-                ? 'border-white/20 text-white hover:border-white/40'
-                : 'border-slate-900 text-slate-900 hover:bg-slate-900 hover:text-white'
-                }`}
-            >
-              {isDark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
-            </button>
+            <div className="flex items-center gap-4">
+              <NewsDropdown isDark={isDark} />
+
+              <button
+                onClick={toggleTheme}
+                className={`p-2 rounded-full border-2 transition-all hover:scale-105 ${isDark
+                  ? 'border-white/20 text-white hover:border-white/40'
+                  : 'border-slate-900 text-slate-900 hover:bg-slate-900 hover:text-white'
+                  }`}
+              >
+                {isDark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+              </button>
+            </div>
           </div>
         </div>
       </header>

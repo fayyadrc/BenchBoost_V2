@@ -263,3 +263,19 @@ async def get_manager_team(entry_id: int, event: int = None):
     except Exception as e:
         logger.exception(f"Failed to get team for entry_id={entry_id}, event={event}")
         raise HTTPException(status_code=500, detail=f"Failed to fetch team data: {str(e)}")
+
+@app.get("/api/news")
+async def get_player_news():
+    """
+    Get the latest player news (injuries, price changes) from FPL Alerts.
+    Uses caching to avoid excessive scraping.
+    """
+    from backend.data.cache import get_cached_player_news
+    
+    try:
+        # Run in thread to avoid blocking
+        alerts = await asyncio.to_thread(get_cached_player_news)
+        return alerts
+    except Exception as e:
+        logger.exception("Failed to fetch player news")
+        return []

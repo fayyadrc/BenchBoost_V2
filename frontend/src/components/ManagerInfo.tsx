@@ -1,14 +1,12 @@
 import React from 'react';
-import { motion } from 'framer-motion';
-import { Trophy, ArrowUp, X, ChevronRight } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { X, Trophy, ArrowUp } from 'lucide-react';
 
 interface ManagerInfoProps {
     managerData: {
-        team_name: string;
         name: string;
-        overall_rank?: number;
-        gameweek_points: number;
+        id: number | string;
+        overall_rank?: number | null;
+        gameweek_points?: number;
     };
     isDark: boolean;
     clearManager: () => void;
@@ -16,54 +14,54 @@ interface ManagerInfoProps {
 
 const ManagerInfo: React.FC<ManagerInfoProps> = ({ managerData, isDark, clearManager }) => {
     return (
-        <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="flex items-center gap-2 sm:gap-4"
-        >
-            <div className="hidden md:flex items-center gap-3">
-                <Link
-                    to="/manager"
-                    className={`group flex items-center gap-3 px-3 py-1.5 rounded-lg transition-all ${isDark ? 'bg-white/10 hover:bg-white/20' : 'bg-slate-100 hover:bg-slate-200'
-                        }`}
-                >
-                    <div className="text-sm text-right">
-                        <p className={`font-black uppercase ${isDark ? 'text-white' : 'text-slate-900'}`}>
-                            {managerData.team_name}
-                        </p>
-                        <p className={`text-xs ${isDark ? 'text-white/50' : 'text-slate-500'}`}>
-                            {managerData.name}
-                        </p>
-                    </div>
-                    <ChevronRight className={`w-4 h-4 transition-all ${isDark ? 'text-white/50' : 'text-slate-400'
-                        }`} />
-                </Link>
+        <div className={`inline-flex items-center gap-2 rounded-full border-2 px-3 py-1.5 transition-all hover:scale-105 group ${isDark
+                ? 'border-white/10 bg-slate-900/30 backdrop-blur-sm hover:border-white/30'
+                : 'border-slate-200 bg-slate-50 hover:border-slate-300 hover:shadow-md'
+            }`}>
+            <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold ${isDark ? 'bg-blue-500 text-white' : 'bg-blue-600 text-white'
+                }`}>
+                {managerData.name.split(' ').map(n => n[0]).join('')}
             </div>
-            <div className={`hidden md:block h-8 w-px ${isDark ? 'bg-white/20' : 'bg-slate-300'}`} />
+            <div className="flex items-center gap-2">
+                <span className={`text-sm font-medium ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                    {managerData.name}
+                </span>
+                <span className={`text-xs font-mono ${isDark ? 'text-white/40' : 'text-slate-400'}`}>
+                    •
+                </span>
+                <span className={`text-xs font-mono ${isDark ? 'text-white/60' : 'text-slate-600'}`}>
+                    {managerData.id}
+                </span>
+            </div>
 
-            {/* Stats - always visible */}
-            <div className="flex items-center gap-2 sm:gap-4">
-                <div className="flex items-center gap-1 sm:gap-1.5">
-                    <Trophy className="w-3.5 sm:w-4 h-3.5 sm:h-4 text-yellow-500" />
-                    <span className={`font-mono text-xs sm:text-sm font-bold ${isDark ? 'text-white/80' : 'text-slate-600'}`}>
-                        {managerData.overall_rank?.toLocaleString() ?? 'N/A'}
+            {/* Stats Divider */}
+            <div className={`w-px h-4 mx-1 ${isDark ? 'bg-white/10' : 'bg-slate-200'}`} />
+
+            {/* Stats */}
+            <div className="flex items-center gap-3">
+                <div className="flex items-center gap-1.5" title="Overall Rank">
+                    <Trophy className="w-3 h-3 text-yellow-500" />
+                    <span className={`text-xs font-mono font-bold ${isDark ? 'text-white/80' : 'text-slate-600'}`}>
+                        {managerData.overall_rank?.toLocaleString() ?? '-'}
                     </span>
                 </div>
-                <div className="flex items-center gap-1 sm:gap-1.5">
-                    <ArrowUp className="w-3.5 sm:w-4 h-3.5 sm:h-4 text-green-500" />
-                    <span className={`font-mono text-xs sm:text-sm font-bold ${isDark ? 'text-white/80' : 'text-slate-600'}`}>
-                        {managerData.gameweek_points}
+                <div className="flex items-center gap-1.5" title="Gameweek Points">
+                    <ArrowUp className="w-3 h-3 text-green-500" />
+                    <span className={`text-xs font-mono font-bold ${isDark ? 'text-white/80' : 'text-slate-600'}`}>
+                        {managerData.gameweek_points ?? 0}
                     </span>
                 </div>
             </div>
+
             <button
                 onClick={clearManager}
-                className={`p-1 sm:p-1.5 transition-colors ${isDark ? 'hover:bg-white/10' : 'hover:bg-slate-100'}`}
-                title="Clear manager"
+                className={`ml-1 opacity-0 group-hover:opacity-100 transition-all ${isDark ? 'text-red-400 hover:text-red-300' : 'text-red-500 hover:text-red-600'
+                    }`}
+                aria-label="Clear manager"
             >
-                <X className={`w-3.5 sm:w-4 h-3.5 sm:h-4 ${isDark ? 'text-white/60' : 'text-slate-400'}`} />
+                <X className="w-3.5 h-3.5" />
             </button>
-        </motion.div>
+        </div>
     );
 };
 

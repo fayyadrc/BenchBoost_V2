@@ -4,6 +4,7 @@ import { Moon, Sun } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import ManagerInfo from './ManagerInfo';
 import ManagerForm from './ManagerForm';
+import { NewsDropdown } from './NewsDropdown';
 
 interface HeaderProps {
     theme: 'dark' | 'light';
@@ -60,9 +61,11 @@ const Header: React.FC<HeaderProps> = ({
                             />
                         )}
 
+                        <NewsDropdown isDark={isDark} />
+
                         <button
                             onClick={toggleTheme}
-                            className={`p-2 border-2 transition-all hover:scale-105 ${isDark
+                            className={`p-2 rounded-full border-2 transition-all hover:scale-105 ${isDark
                                 ? 'border-white/20 text-white hover:border-white/40'
                                 : 'border-slate-900 text-slate-900 hover:bg-slate-900 hover:text-white'
                                 }`}

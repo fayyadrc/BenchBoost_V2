@@ -136,6 +136,15 @@ export async function getManagerTeam(entryId: number, event?: number): Promise<M
   return apiFetch(url, { method: 'GET' });
 }
 
+export async function getPlayerNews(): Promise<any[]> {
+  try {
+    return await apiFetch('/api/news', { method: 'GET' });
+  } catch (error) {
+    console.warn('Failed to fetch news:', error);
+    return [];
+  }
+}
+
 export async function ask(req: QueryRequest): Promise<QueryResponse> {
   return apiFetch('/api/query', {
     method: 'POST',
