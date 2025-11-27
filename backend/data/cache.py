@@ -316,3 +316,53 @@ def get_current_gameweek() -> Optional[Dict[str, Any]]:
 def get_fixture_by_id(fixture_id: int) -> Optional[Dict[str, Any]]:
     """Get fixture details by ID from core_data cache."""
     return core_data.get("fixtures", {}).get(fixture_id)
+
+
+def get_upcoming_fixtures_for_team(team_id: int, num_fixtures: int = 3) -> list:
+    """
+    Get upcoming fixtures for a specific team.
+    
+    Args:
+        team_id: Team ID
+        num_fixtures: Number of upcoming fixtures to return
+        
+    Returns:
+        List of fixture dictionaries
+    """
+    current_gw = get_current_gameweek()
+    if not current_gw:
+        return []
+        
+    current_event = current_gw.get("id", 1)
+    
+    upcoming = []
+    all_fixtures = core_data.get("fixtures", {}).values()
+    
+    # Sort fixtures by event
+    sorted_fixtures = sorted(
+        [f for f in all_fixtures if f.get("event") is not None], 
+        key=lambda x: x.get("event")
+    )
+    
+    for fixture in sorted_fixtures:
+        if fixture.get("event") < current_event:
+            continue
+            
+        if fixture.get("team_h") == team_id or fixture.get("team_a") == team_id:
+            is_home = fixture.get("team_h") == team_id
+            opponent_id = fixture.get("team_a") if is_home else fixture.get("team_h")
+            opponent = get_team_by_id(opponent_id)
+            
+            upcoming.append({
+                "event": fixture.get("event"),
+                "is_home": is_home,
+                "opponent_id": opponent_id,
+                "opponent_name": opponent.get("name") if opponent else "Unknown",
+                "opponent_short": opponent.get("short_name") if opponent else "UNK",
+                "difficulty": fixture.get("team_h_difficulty") if is_home else fixture.get("team_a_difficulty")
+            })
+            
+            if len(upcoming) >= num_fixtures:
+                break
+                
+    return upcoming

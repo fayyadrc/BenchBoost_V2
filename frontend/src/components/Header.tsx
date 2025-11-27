@@ -1,6 +1,6 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
-import { User, Moon, Sun } from 'lucide-react';
+
+import { Moon, Sun } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import ManagerInfo from './ManagerInfo';
 import ManagerForm from './ManagerForm';
@@ -39,20 +39,7 @@ const Header: React.FC<HeaderProps> = ({
                             Bench<span className={isDark ? 'text-blue-600' : 'text-blue-600'} style={isDark ? { color: '#003566' } : {}}>Boost</span>
                         </h1>
 
-                        <div className={`hidden sm:block h-8 w-px ${isDark ? 'bg-white/20' : 'bg-slate-300'}`} />
 
-                        <Link
-                            to="/manager"
-                            className={`px-2 sm:px-4 py-1.5 sm:py-2 border-2 font-bold uppercase text-xs tracking-wide transition-all hover:scale-105 ${isDark
-                                ? 'border-white/20 text-white hover:bg-white hover:text-slate-900'
-                                : 'border-slate-900 text-slate-900 hover:bg-slate-900 hover:text-white'
-                                }`}
-                        >
-                            <span className="flex items-center gap-2">
-                                <User className="w-3.5 h-3.5" />
-                                <span className="hidden sm:inline">Manager</span>
-                            </span>
-                        </Link>
                     </div>
 
                     {/* Right Side */}

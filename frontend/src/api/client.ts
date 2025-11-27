@@ -42,8 +42,43 @@ export type PlayerPick = {
   points: number;
   base_points?: number;
   price?: number;
+  form?: string;
+  points_per_game?: string;
+  total_points?: number;
   selected_by_percent?: string;
   photo?: string;
+  news?: string;
+  chance_of_playing?: number | null;
+  fixtures?: Array<{
+    event: number;
+    is_home: boolean;
+    opponent_id: number;
+    opponent_name: string;
+    opponent_short: string;
+    difficulty: number;
+  }>;
+  // Detailed Stats
+  minutes?: number;
+  goals_scored?: number;
+  assists?: number;
+  clean_sheets?: number;
+  goals_conceded?: number;
+  own_goals?: number;
+  penalties_saved?: number;
+  penalties_missed?: number;
+  yellow_cards?: number;
+  red_cards?: number;
+  saves?: number;
+  bonus?: number;
+  bps?: number;
+  influence?: string;
+  creativity?: string;
+  threat?: string;
+  ict_index?: string;
+  expected_goals?: string;
+  expected_assists?: string;
+  expected_goal_involvements?: string;
+  expected_goals_conceded?: string;
 };
 
 export type AutomaticSub = {
@@ -74,7 +109,7 @@ const jsonHeaders = {
   'Content-Type': 'application/json',
 };
 
-const API_BASE = ''; 
+const API_BASE = '';
 
 // Generic fetch wrapper with error handling
 async function apiFetch<T>(url: string, options?: RequestInit): Promise<T> {
@@ -95,7 +130,7 @@ export async function getManagerInfo(entryId: number): Promise<ManagerData> {
 }
 
 export async function getManagerTeam(entryId: number, event?: number): Promise<ManagerTeam> {
-  const url = event 
+  const url = event
     ? `/api/manager/${entryId}/team?event=${event}`
     : `/api/manager/${entryId}/team`;
   return apiFetch(url, { method: 'GET' });

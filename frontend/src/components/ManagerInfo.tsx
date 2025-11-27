@@ -1,6 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Trophy, ArrowUp, X } from 'lucide-react';
+import { Trophy, ArrowUp, X, ChevronRight } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 interface ManagerInfoProps {
     managerData: {
@@ -18,19 +19,25 @@ const ManagerInfo: React.FC<ManagerInfoProps> = ({ managerData, isDark, clearMan
         <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
-            className={`flex items-center gap-2 sm:gap-4 px-2 sm:px-5 py-2 sm:py-3 border-2 ${isDark ? 'border-white/20 bg-slate-900' : 'border-slate-900 bg-white'
-                }`}
+            className="flex items-center gap-2 sm:gap-4"
         >
-            {/* Team/Manager names - hidden on mobile */}
             <div className="hidden md:flex items-center gap-3">
-                <div className="text-sm">
-                    <p className={`font-black uppercase ${isDark ? 'text-white' : 'text-slate-900'}`}>
-                        {managerData.team_name}
-                    </p>
-                    <p className={`text-xs ${isDark ? 'text-white/50' : 'text-slate-500'}`}>
-                        {managerData.name}
-                    </p>
-                </div>
+                <Link
+                    to="/manager"
+                    className={`group flex items-center gap-3 px-3 py-1.5 rounded-lg transition-all ${isDark ? 'bg-white/10 hover:bg-white/20' : 'bg-slate-100 hover:bg-slate-200'
+                        }`}
+                >
+                    <div className="text-sm text-right">
+                        <p className={`font-black uppercase ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                            {managerData.team_name}
+                        </p>
+                        <p className={`text-xs ${isDark ? 'text-white/50' : 'text-slate-500'}`}>
+                            {managerData.name}
+                        </p>
+                    </div>
+                    <ChevronRight className={`w-4 h-4 transition-all ${isDark ? 'text-white/50' : 'text-slate-400'
+                        }`} />
+                </Link>
             </div>
             <div className={`hidden md:block h-8 w-px ${isDark ? 'bg-white/20' : 'bg-slate-300'}`} />
 

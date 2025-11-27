@@ -75,7 +75,7 @@ export function useManagerData() {
 
   const refreshTeam = useCallback(async () => {
     if (!managerData) return;
-    
+
     setIsLoading(true);
     try {
       const team = await getManagerTeam(managerData.id);
@@ -109,7 +109,7 @@ export function useManagerData() {
     managerTeam,
     isLoading,
     error,
-    
+
     // Actions
     loadManagerData,
     loadManagerInfo,
