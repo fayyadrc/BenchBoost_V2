@@ -15,8 +15,8 @@ interface ManagerInfoProps {
 const ManagerInfo: React.FC<ManagerInfoProps> = ({ managerData, isDark, clearManager }) => {
     return (
         <div className={`inline-flex items-center gap-2 rounded-full border-2 px-3 py-1.5 transition-all hover:scale-105 group ${isDark
-                ? 'border-white/10 bg-slate-900/30 backdrop-blur-sm hover:border-white/30'
-                : 'border-slate-200 bg-slate-50 hover:border-slate-300 hover:shadow-md'
+            ? 'border-white/10 bg-slate-900/30 backdrop-blur-sm hover:border-white/30'
+            : 'border-slate-200 bg-slate-50 hover:border-slate-300 hover:shadow-md'
             }`}>
             <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold ${isDark ? 'bg-blue-500 text-white' : 'bg-blue-600 text-white'
                 }`}>

@@ -1,6 +1,7 @@
 import React from 'react';
 
-import { Moon, Sun } from 'lucide-react';
+import { Moon, Sun, User } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import ManagerInfo from './ManagerInfo';
 import ManagerForm from './ManagerForm';
@@ -59,6 +60,18 @@ const Header: React.FC<HeaderProps> = ({
                                 handleManagerSubmit={handleManagerSubmit}
                                 isDark={isDark}
                             />
+                        )}
+
+                        {managerData && (
+                            <Link
+                                to="/manager"
+                                className={`p-2 rounded-full border-2 transition-all hover:scale-105 ${isDark
+                                    ? 'border-white/20 text-white hover:border-white/40'
+                                    : 'border-slate-900 text-slate-900 hover:bg-slate-900 hover:text-white'
+                                    }`}
+                            >
+                                <User className="w-4 h-4" />
+                            </Link>
                         )}
 
                         <NewsDropdown isDark={isDark} />

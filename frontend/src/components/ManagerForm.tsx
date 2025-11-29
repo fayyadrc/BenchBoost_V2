@@ -23,7 +23,7 @@ const ManagerForm: React.FC<ManagerFormProps> = ({
                 value={managerId}
                 onChange={(e) => setManagerId(e.target.value)}
                 placeholder="FPL ID"
-                className={`border-2 px-2 sm:px-4 py-1.5 sm:py-2.5 text-xs sm:text-sm font-bold uppercase w-24 sm:w-36 focus:outline-none transition-all ${isDark
+                className={`border-2 px-2 sm:px-4 py-1.5 sm:py-2.5 text-xs sm:text-sm font-bold uppercase w-24 sm:w-36 focus:outline-none transition-all rounded-full ${isDark
                     ? 'bg-slate-900 border-white/20 text-white placeholder-white/30'
                     : 'bg-white border-slate-900 text-slate-900 placeholder-slate-400 focus:border-blue-600'
                     }`}
@@ -35,7 +35,7 @@ const ManagerForm: React.FC<ManagerFormProps> = ({
             <button
                 type="submit"
                 disabled={!managerId.trim() || managerLoading}
-                className={`px-3 sm:px-5 py-1.5 sm:py-2.5 text-xs sm:text-sm font-black uppercase transition-all disabled:opacity-30 ${isDark
+                className={`px-3 sm:px-5 py-1.5 sm:py-2.5 text-xs sm:text-sm font-black uppercase transition-all disabled:opacity-30 rounded-full ${isDark
                     ? 'text-white'
                     : 'bg-slate-900 text-white hover:bg-slate-800'
                     }`}
