@@ -13,11 +13,13 @@ interface ManagerContextType {
   isLoading: boolean;
   teamLoading: boolean;
   error: string;
+  isRefreshing: boolean;
 
   // Actions
   loadManagerData: (id: string, includeTeam?: boolean) => Promise<void>;
   loadManagerInfo: (id: string) => Promise<void>;
   refreshTeam: () => Promise<void>;
+  forceRefresh: () => Promise<void>;
   clearManager: () => void;
   handleManagerSubmit: (e: React.FormEvent) => Promise<void>;
 }
@@ -31,6 +33,7 @@ export function ManagerProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [teamLoading, setTeamLoading] = useState<boolean>(false);
   const [error, setError] = useState<string>('');
+  const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
 
   // Load saved manager on mount
   useEffect(() => {
@@ -108,6 +111,35 @@ export function ManagerProvider({ children }: { children: ReactNode }) {
     }
   }, [managerData]);
 
+  const forceRefresh = useCallback(async () => {
+    if (!managerId) return;
+
+    setIsRefreshing(true);
+    setError('');
+
+    try {
+      const numId = parseInt(managerId, 10);
+      if (isNaN(numId)) {
+        throw new Error('Invalid manager ID');
+      }
+
+      // Fetch both manager info and team data in parallel
+      const [info, team] = await Promise.all([
+        getManagerInfo(numId),
+        getManagerTeam(numId).catch(() => null), // Team is optional
+      ]);
+
+      setManagerData(info);
+      if (team) {
+        setManagerTeam(team);
+      }
+    } catch (err: any) {
+      setError(err?.message || 'Failed to refresh data');
+    } finally {
+      setIsRefreshing(false);
+    }
+  }, [managerId]);
+
   const clearManager = useCallback(() => {
     setManagerData(null);
     setManagerTeam(null);
@@ -130,9 +162,11 @@ export function ManagerProvider({ children }: { children: ReactNode }) {
     isLoading,
     teamLoading,
     error,
+    isRefreshing,
     loadManagerData,
     loadManagerInfo,
     refreshTeam,
+    forceRefresh,
     clearManager,
     handleManagerSubmit,
   };

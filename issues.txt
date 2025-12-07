@@ -1,0 +1,8 @@
+ISSUES:
+- points in manager profile not showing correctly (might be because of the transfers and its not being calculated properly)
+-
+
+
+
+FEATURES:
+- brokerage type watchlist for players who the user wants to see how certain players are doing

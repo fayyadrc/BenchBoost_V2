@@ -233,7 +233,7 @@ def build_top_players_summary(
     
     Args:
         position: Filter by position (GK, DEF, MID, FWD) or None for all
-        metric: Metric to sort by (total_points, form, selected_by_percent, etc.)
+        metric: Metric to sort by (goals_scored, assists, total_points, form, etc.)
         count: Number of players to include
         
     Returns:
@@ -243,7 +243,11 @@ def build_top_players_summary(
     
     # Check if cache has any players loaded
     if not all_players:
-        return "No player data available. The cache may not be loaded yet. Please try refreshing the data."
+        # Try loading the cache first
+        cache.load_core_game_data()
+        all_players = list(cache.core_data.get("players", {}).values())
+        if not all_players:
+            return "No player data available. The cache may not be loaded yet. Please try refreshing the data."
     
     # Filter by position if specified
     if position:
@@ -263,18 +267,44 @@ def build_top_players_summary(
     all_players.sort(key=lambda p: float(p.get(metric, 0)), reverse=True)
     top_players = all_players[:count]
     
+    # Human-readable metric names
+    metric_display = {
+        "goals_scored": "Goals",
+        "assists": "Assists",
+        "total_points": "Points",
+        "form": "Form",
+        "selected_by_percent": "Ownership %",
+        "minutes": "Minutes",
+        "clean_sheets": "Clean Sheets",
+        "bonus": "Bonus",
+        "bps": "BPS",
+        "ict_index": "ICT Index",
+        "now_cost": "Price"
+    }
+    metric_name = metric_display.get(metric, metric)
+    
     position_text = f"{position} " if position else ""
-    lines = [f"Top {count} {position_text}Players by {metric}:"]
+    lines = [f"Top {count} {position_text}Players by {metric_name}:"]
     lines.append("-" * 70)
     
     for i, player in enumerate(top_players, 1):
         team = cache.get_team_by_id(player.get("team"))
         team_name = team.get("short_name", "???") if team else "???"
         
+        # Format value based on metric type
+        value = player.get(metric, 0)
+        if metric == "now_cost":
+            value_str = f"£{value / 10:.1f}m"
+        elif metric in ["form", "ict_index", "selected_by_percent"]:
+            value_str = f"{value}"
+        else:
+            value_str = f"{int(value)}"
+        
         lines.append(
             f"{i:2}. {player.get('web_name'):15} ({team_name:3}) - "
-            f"£{player.get('now_cost', 0) / 10:4.1f}m | "
-            f"{metric}: {player.get(metric, 0)}"
+            f"{metric_name}: {value_str} | "
+            f"Pts: {player.get('total_points', 0)} | "
+            f"£{player.get('now_cost', 0) / 10:.1f}m"
         )
     
     return "\n".join(lines)

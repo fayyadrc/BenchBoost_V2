@@ -3,10 +3,18 @@
 All tools use the unified `langchain_core.tools.tool` decorator for consistency
 with LangChain 1.x + LangGraph. Each function wraps underlying data-layer
 helpers and returns raw dicts/objects suitable for the agent to format.
+
+Data Consistency:
+- All player data uses standardized schemas from backend.data.models
+- All responses include metadata (_meta) with fetched_at timestamp
+- Classification tiers (ownership, form, price) are automatically included
+- Expected stats (xG, xA) analysis is included by default
 """
 
 from typing import Optional, Any, Dict, List
 from ..data import api_client, cache, livefpl_scrape, stats
+from ..data.utils import generate_player_summary, format_price, format_percentage
+from ..data.models import wrap_response
 from . import context_builder
 from langchain_core.tools import tool
 
@@ -17,32 +25,159 @@ from langchain_core.tools import tool
 
 @tool
 def get_all_players_with_stats(session: Optional[Any] = None, timeout: Optional[int] = None) -> List[Dict]:
-    """Get all players with calculated statistics (PPM, points per 90, etc.)."""
+    """
+    Get all players with calculated statistics.
+    
+    Each player includes:
+    - Core stats: points, form, price, minutes
+    - Derived stats: PPM, points_per_90, goals_per_90, etc.
+    - Expected stats: xG, xA, performance_status (over/under performing)
+    - Classifications: ownership_tier, form_tier, price_tier, transfer_trend
+    - Metadata: _meta with fetched_at timestamp
+    """
     return stats.get_all_players_with_stats(session=session, timeout=timeout)
 
 
 @tool
-def get_player_stats(player_name: str, session: Optional[Any] = None, timeout: Optional[int] = None) -> Dict:
-    """Get stats for a specific player by name."""
-    return stats.get_player_stats(player_name, session=session, timeout=timeout)
+def get_player_stats(player_name: str) -> Dict:
+    """
+    Get comprehensive stats for a specific player by name.
+    
+    Includes all calculated metrics, expected stats analysis, and classifications.
+    Use this for detailed player analysis questions.
+    
+    Args:
+        player_name: Player's web name (e.g., "Haaland") or full name
+        
+    Returns:
+        Enriched player dict with all stats, or {"error": "..."} if not found
+    """
+    result = stats.get_player_stats(player_name)
+    if result is None:
+        return {"error": f"Player '{player_name}' not found", "suggestion": "Try a different spelling or use the web_name"}
+    return result
 
 
 @tool
 def get_best_players(
     position: Optional[str] = None,
-    sort_by: str = "points_per_million_per_90",
+    sort_by: str = "points_per_million",
     count: int = 5,
-    session: Optional[Any] = None,
-    timeout: Optional[int] = None,
+    min_minutes: int = 90,
 ) -> List[Dict]:
-    """Return the best players by position and sort criteria."""
+    """
+    Get the best players by a specific metric.
+    
+    Args:
+        position: Filter by position (GK, DEF, MID, FWD) or None for all
+        sort_by: Metric to sort by. Options include:
+            - total_points: Total FPL points
+            - points_per_million: Value (points/£m)
+            - points_per_90: Points per 90 minutes
+            - form: Recent form rating
+            - goals_scored, assists, clean_sheets
+            - ict_index: Influence + Creativity + Threat
+            - xG, xA: Expected goals/assists (in expected_stats)
+        count: Number of players to return
+        min_minutes: Minimum minutes played filter
+        
+    Returns:
+        List of top players with full enriched data
+    """
     return stats.get_best_players(
         position=position,
         sort_by=sort_by,
         count=count,
-        session=session,
-        timeout=timeout
+        min_minutes=min_minutes,
     )
+
+
+@tool
+def get_transfer_trends(count: int = 10, direction: str = "in") -> List[Dict]:
+    """
+    Get most transferred in/out players this gameweek.
+    
+    Use this for questions about:
+    - Who is everyone buying/selling?
+    - Which players are trending?
+    - Price rise/fall predictions
+    
+    Args:
+        count: Number of players to return
+        direction: "in" for most transferred in, "out" for most transferred out
+        
+    Returns:
+        List of players sorted by transfer volume with full stats
+    """
+    return stats.get_transfer_trends(count=count, direction=direction)
+
+
+@tool
+def get_differentials(
+    max_ownership: float = 10.0,
+    min_form: float = 4.0,
+    position: Optional[str] = None,
+    count: int = 10,
+) -> List[Dict]:
+    """
+    Find differential players with low ownership but good form.
+    
+    Use this for questions about:
+    - Good differentials to consider
+    - Low-owned players in form
+    - Mini-league punts
+    
+    Args:
+        max_ownership: Maximum ownership percentage (default 10%)
+        min_form: Minimum form rating (default 4.0)
+        position: Optional position filter (GK, DEF, MID, FWD)
+        count: Number of players to return
+        
+    Returns:
+        List of differential players sorted by form
+    """
+    return stats.get_differentials(
+        max_ownership=max_ownership,
+        min_form=min_form,
+        position=position,
+        count=count,
+    )
+
+
+@tool
+def get_underperformers(min_xg_difference: float = -1.0, count: int = 10) -> List[Dict]:
+    """
+    Find players underperforming their xG (potential value picks).
+    
+    Players scoring fewer goals than expected are likely to improve.
+    This is useful for finding players "due" for a goals burst.
+    
+    Args:
+        min_xg_difference: How much below xG (negative number, default -1.0)
+        count: Number of players to return
+        
+    Returns:
+        List of underperforming players with xG analysis
+    """
+    return stats.get_underperformers(min_xg_difference=min_xg_difference, count=count)
+
+
+@tool
+def get_overperformers(min_xg_difference: float = 1.0, count: int = 10) -> List[Dict]:
+    """
+    Find players overperforming their xG (potential regression candidates).
+    
+    Players scoring more goals than expected may regress to the mean.
+    Use this to identify players who might be due a dry spell.
+    
+    Args:
+        min_xg_difference: How much above xG (positive number, default 1.0)
+        count: Number of players to return
+        
+    Returns:
+        List of overperforming players with xG analysis
+    """
+    return stats.get_overperformers(min_xg_difference=min_xg_difference, count=count)
 
 
 # -----------------------------
@@ -315,11 +450,22 @@ def compare_players(player_names: List[str], sort_by: str = "total_points") -> s
 @tool
 def get_top_players(position: Optional[str] = None, metric: str = "total_points", count: int = 10) -> str:
     """
-    Get top players by a specific metric.
+    Get top players by a specific metric. Use this for questions like "who has the most goals/assists".
     
     Args:
         position: Filter by position (GK, DEF, MID, FWD) or None for all
-        metric: Metric to sort by (total_points, form, selected_by_percent, etc.)
+        metric: Metric to sort by. Available metrics:
+            - goals_scored: Total goals scored this season
+            - assists: Total assists this season  
+            - total_points: Total FPL points
+            - form: Recent form rating
+            - selected_by_percent: Ownership percentage
+            - now_cost: Current price (in 0.1m units)
+            - minutes: Total minutes played
+            - clean_sheets: Clean sheets (for defenders/goalkeepers)
+            - bonus: Total bonus points
+            - bps: Total bonus point system score
+            - ict_index: ICT index (Influence + Creativity + Threat)
         count: Number of players to return (default 10)
         
     Returns:
@@ -373,6 +519,12 @@ all_tools = [
     get_player_stats,
     get_best_players,
     
+    # NEW: Transfer & differential tools
+    get_transfer_trends,
+    get_differentials,
+    get_underperformers,
+    get_overperformers,
+    
     # Rules & lookup tools
     get_fpl_rules,
     get_player_by_name,
@@ -387,6 +539,9 @@ all_tools = [
     get_manager_info,
     get_manager_squad,
     get_live_gameweek_data,
+    
+    # Knowledge base
+    search_knowledge_base,
     
     # API tools (use sparingly)
     bootstrap_static,

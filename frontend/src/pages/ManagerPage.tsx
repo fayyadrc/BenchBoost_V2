@@ -21,6 +21,17 @@ const getPositionStyle = (pos: string) => {
   return styles[pos as keyof typeof styles] || styles.MID;
 };
 
+const getChipDisplayName = (chipCode: string | null): string => {
+  if (!chipCode) return '';
+  const chipNames: Record<string, string> = {
+    'bboost': 'Bench Boost',
+    '3xc': 'Triple Captain',
+    'freehit': 'Free Hit',
+    'wildcard': 'Wildcard',
+  };
+  return chipNames[chipCode.toLowerCase()] || chipCode;
+};
+
 const getAvailabilityStatus = (chance: number | null | undefined, news: string | undefined) => {
   if (chance === null || chance === undefined) {
     if (news && news.length > 0) return { color: 'bg-red-500', text: '!', fullText: news };
@@ -543,8 +554,10 @@ const ManagerPage: React.FC = () => {
     isLoading: managerLoading,
     teamLoading,
     error: managerError,
+    isRefreshing,
     handleManagerSubmit,
     refreshTeam,
+    forceRefresh,
     clearManager,
   } = useManager();
 
@@ -764,6 +777,18 @@ const ManagerPage: React.FC = () => {
                   <X className="w-4 h-4 inline mr-2" />
                   Change
                 </button>
+
+                <button
+                  onClick={forceRefresh}
+                  disabled={isRefreshing}
+                  className={`px-6 py-3 border-2 font-bold uppercase tracking-wide transition-all hover:scale-105 ${isDark
+                    ? 'border-blue-500/50 text-blue-400 hover:bg-blue-500 hover:text-white disabled:opacity-50'
+                    : 'border-blue-600 text-blue-600 hover:bg-blue-600 hover:text-white disabled:opacity-50'
+                    }`}
+                >
+                  <RefreshCw className={`w-4 h-4 inline mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
+                  {isRefreshing ? 'Refreshing...' : 'Refresh All'}
+                </button>
               </div>
             </div>
 
@@ -835,10 +860,10 @@ const ManagerPage: React.FC = () => {
                         </div>
 
                         {managerTeam.active_chip && (
-                          <div className={`mt-4 p-2 border-2 text-center ${isDark ? 'border-purple-500 bg-purple-500/20' : 'border-purple-600 bg-purple-100'
+                          <div className={`mt-4 py-1.5 px-3 border text-center ${isDark ? 'border-purple-500/50 bg-purple-500/10' : 'border-purple-400 bg-purple-50'
                             }`}>
-                            <span className="text-sm font-black uppercase text-purple-500">
-                              {managerTeam.active_chip}
+                            <span className={`text-xs font-bold ${isDark ? 'text-purple-400' : 'text-purple-600'}`}>
+                              {getChipDisplayName(managerTeam.active_chip)} Chip Active
                             </span>
                           </div>
                         )}
