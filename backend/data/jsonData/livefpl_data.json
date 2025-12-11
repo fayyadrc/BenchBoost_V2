@@ -1,0 +1,140 @@
+{
+  "gameweek_summary": {
+    "rank_direction": "up",
+    "status": "You're on a",
+    "arrow_type": "Green Arrow",
+    "margin": "by a margin of 2 points 👏",
+    "gameweek_points": "54 points",
+    "safety_score": "Safety Score: 52 points"
+  },
+  "captain": {
+    "caption": "Haaland done with 2 points",
+    "result": "0.5 points fewer than the average elite captain 😞"
+  },
+  "team_players": [
+    {
+      "name": "Sánchez",
+      "points": "10"
+    },
+    {
+      "name": "Dúbravka",
+      "points": "3"
+    },
+    {
+      "name": "Burn",
+      "points": "7"
+    },
+    {
+      "name": "J.Timber",
+      "points": "3"
+    },
+    {
+      "name": "Andersen",
+      "points": "1"
+    },
+    {
+      "name": "Muñoz",
+      "points": "256"
+    },
+    {
+      "name": "Senesi",
+      "points": "8"
+    },
+    {
+      "name": "Wieffer",
+      "points": "2"
+    },
+    {
+      "name": "Foden",
+      "points": "12"
+    },
+    {
+      "name": "Bruno G.",
+      "points": "10"
+    },
+    {
+      "name": "Semenyo",
+      "points": "3"
+    },
+    {
+      "name": "Minteh",
+      "points": "3"
+    },
+    {
+      "name": "Mateta",
+      "points": "2"
+    },
+    {
+      "name": "Thiago",
+      "points": "2"
+    },
+    {
+      "name": "Haaland",
+      "points": "4"
+    }
+  ],
+  "differentials": [
+    {
+      "name": "Wieffer",
+      "points": 2,
+      "ownership": "+99.7%"
+    },
+    {
+      "name": "Andersen",
+      "points": 1,
+      "ownership": "+97.9%"
+    },
+    {
+      "name": "Dúbravka",
+      "points": 3,
+      "ownership": "+93.9%"
+    },
+    {
+      "name": "Burn",
+      "points": 7,
+      "ownership": "+91.6%"
+    },
+    {
+      "name": "Senesi",
+      "points": 8,
+      "ownership": "+90.8%"
+    },
+    {
+      "name": "Sánchez",
+      "points": 10,
+      "ownership": "+90.5%"
+    },
+    {
+      "name": "Bruno G.",
+      "points": 10,
+      "ownership": "+86.9%"
+    },
+    {
+      "name": "Minteh",
+      "points": 3,
+      "ownership": "+85.0%"
+    }
+  ],
+  "threats": [
+    {
+      "name": "Guéhi",
+      "points": 8,
+      "ownership": "-44.5%"
+    },
+    {
+      "name": "Mbeumo",
+      "points": 8,
+      "ownership": "-42.5%"
+    },
+    {
+      "name": "Woltemade",
+      "points": 2,
+      "ownership": "-37.5%"
+    },
+    {
+      "name": "Raya",
+      "points": 2,
+      "ownership": "-33.6%"
+    }
+  ]
+}

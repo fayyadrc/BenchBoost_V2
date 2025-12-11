@@ -1,0 +1,1031 @@
+{
+  "timestamp": "2025-12-11 18:17:02",
+  "updates": [
+    {
+      "type": "price_change",
+      "player": "Ben Gannon-Doak",
+      "team": "Bournemouth",
+      "change_type": "fall",
+      "new_price": 4.8,
+      "date": null
+    },
+    {
+      "type": "price_change",
+      "player": "Fábio Carvalho",
+      "team": "Brentford",
+      "change_type": "fall",
+      "new_price": 4.7,
+      "date": null
+    },
+    {
+      "type": "price_change",
+      "player": "Matthew Cox",
+      "team": "Brentford",
+      "change_type": "fall",
+      "new_price": 3.9,
+      "date": null
+    },
+    {
+      "type": "price_change",
+      "player": "Yankuba Minteh",
+      "team": "Brighton",
+      "change_type": "fall",
+      "new_price": 6.2,
+      "date": null
+    },
+    {
+      "type": "price_change",
+      "player": "Hjalmar Ekdal",
+      "team": "Burnley",
+      "change_type": "fall",
+      "new_price": 3.9,
+      "date": null
+    },
+    {
+      "type": "price_change",
+      "player": "Robert Sánchez",
+      "team": "Chelsea",
+      "change_type": "rise",
+      "new_price": 4.9,
+      "date": null
+    },
+    {
+      "type": "price_change",
+      "player": "Iliman Ndiaye",
+      "team": "Everton",
+      "change_type": "fall",
+      "new_price": 6.4,
+      "date": null
+    },
+    {
+      "type": "price_change",
+      "player": "Joachim Andersen",
+      "team": "Fulham",
+      "change_type": "rise",
+      "new_price": 4.6,
+      "date": null
+    },
+    {
+      "type": "price_change",
+      "player": "Dominic Calvert-Lewin",
+      "team": "Leeds",
+      "change_type": "rise",
+      "new_price": 5.6,
+      "date": null
+    },
+    {
+      "type": "price_change",
+      "player": "Tijjani Reijnders",
+      "team": "Man City",
+      "change_type": "fall",
+      "new_price": 5.2,
+      "date": null
+    },
+    {
+      "type": "price_change",
+      "player": "Ki-Jana Hoever",
+      "team": "Wolves",
+      "change_type": "fall",
+      "new_price": 3.8,
+      "date": null
+    },
+    {
+      "type": "status",
+      "player": "Jurriën Timber",
+      "team": "Arsenal",
+      "status": "Knock - 75% chance of playing",
+      "date": null
+    },
+    {
+      "type": "status",
+      "player": "Joelinton Cássio Apolinário de Lira",
+      "team": "Newcastle",
+      "status": "Groin Injury - 75% chance of playing",
+      "date": null
+    },
+    {
+      "type": "status",
+      "player": "Chadi Riad Dnanou",
+      "team": "Crystal Palace",
+      "status": "Lack of match fitness - 25% chance of playing",
+      "date": "Thursday 11 December 2025"
+    },
+    {
+      "type": "status",
+      "player": "Ola Aina",
+      "team": "Nott'm Forest",
+      "status": "Hamstring injury - Expected back 07 Feb",
+      "date": "Thursday 11 December 2025"
+    },
+    {
+      "type": "status",
+      "player": "Axel Tuanzebe",
+      "team": "Burnley",
+      "status": "Knock - 50% chance of playing",
+      "date": "Thursday 11 December 2025"
+    },
+    {
+      "type": "status",
+      "player": "Jaydee Canvot",
+      "team": "Crystal Palace",
+      "status": "Illness - 75% chance of playing",
+      "date": "Thursday 11 December 2025"
+    },
+    {
+      "type": "status",
+      "player": "Jean-Philippe Mateta",
+      "team": "Crystal Palace",
+      "status": "Knee injury - 75% chance of playing",
+      "date": "Thursday 11 December 2025"
+    },
+    {
+      "type": "status",
+      "player": "Daniel Muñoz Mejía",
+      "team": "Crystal Palace",
+      "status": "Knee injury - Expected back 17 Jan",
+      "date": "Thursday 11 December 2025"
+    },
+    {
+      "type": "status",
+      "player": "Ismaïla Sarr",
+      "team": "Crystal Palace",
+      "status": "Ankle injury - 25% chance of playing",
+      "date": "Thursday 11 December 2025"
+    },
+    {
+      "type": "status",
+      "player": "Benjamin Sesko",
+      "team": "Man Utd",
+      "status": "Knee injury - 50% chance of playing",
+      "date": "Thursday 11 December 2025"
+    },
+    {
+      "type": "status",
+      "player": "Sven Botman",
+      "team": "Newcastle",
+      "status": "Back injury - 50% chance of playing",
+      "date": "Thursday 11 December 2025"
+    },
+    {
+      "type": "status",
+      "player": "Dilane Bakwa",
+      "team": "Nott'm Forest",
+      "status": "Lack of match fitness - 75% chance of playing",
+      "date": "Thursday 11 December 2025"
+    },
+    {
+      "type": "status",
+      "player": "Matz Sels",
+      "team": "Nott'm Forest",
+      "status": "Groin Injury - 75% chance of playing",
+      "date": "Thursday 11 December 2025"
+    },
+    {
+      "type": "status",
+      "player": "Douglas Luiz Soares de Paulo",
+      "team": "Nott'm Forest",
+      "status": "Lack of match fitness - 75% chance of playing",
+      "date": "Thursday 11 December 2025"
+    },
+    {
+      "type": "status",
+      "player": "Ryan Yates",
+      "team": "Nott'm Forest",
+      "status": "Hamstring injury - Unknown return date",
+      "date": "Thursday 11 December 2025"
+    },
+    {
+      "type": "status",
+      "player": "Oleksandr Zinchenko",
+      "team": "Nott'm Forest",
+      "status": "Lack of match fitness - 75% chance of playing",
+      "date": "Thursday 11 December 2025"
+    },
+    {
+      "type": "price_change",
+      "player": "Harvey Elliott",
+      "team": "Aston Villa",
+      "change_type": "fall",
+      "new_price": 5.2,
+      "date": "Thursday 11 December 2025"
+    },
+    {
+      "type": "price_change",
+      "player": "Marco M.Bizot",
+      "team": "Aston Villa",
+      "change_type": "fall",
+      "new_price": 4.2,
+      "date": "Thursday 11 December 2025"
+    },
+    {
+      "type": "price_change",
+      "player": "Morgan Rogers",
+      "team": "Aston Villa",
+      "change_type": "rise",
+      "new_price": 7.0,
+      "date": "Thursday 11 December 2025"
+    },
+    {
+      "type": "price_change",
+      "player": "Ethan Pinnock",
+      "team": "Brentford",
+      "change_type": "fall",
+      "new_price": 4.2,
+      "date": "Thursday 11 December 2025"
+    },
+    {
+      "type": "price_change",
+      "player": "Igor Thiago Thiago",
+      "team": "Brentford",
+      "change_type": "rise",
+      "new_price": 7.0,
+      "date": "Thursday 11 December 2025"
+    },
+    {
+      "type": "price_change",
+      "player": "Joe Knight",
+      "team": "Brighton",
+      "change_type": "fall",
+      "new_price": 4.4,
+      "date": "Thursday 11 December 2025"
+    },
+    {
+      "type": "price_change",
+      "player": "Tom McGill",
+      "team": "Brighton",
+      "change_type": "fall",
+      "new_price": 3.9,
+      "date": "Thursday 11 December 2025"
+    },
+    {
+      "type": "price_change",
+      "player": "Oliver Sonne",
+      "team": "Burnley",
+      "change_type": "fall",
+      "new_price": 3.8,
+      "date": "Thursday 11 December 2025"
+    },
+    {
+      "type": "price_change",
+      "player": "Ismaïla Sarr",
+      "team": "Crystal Palace",
+      "change_type": "fall",
+      "new_price": 6.4,
+      "date": "Thursday 11 December 2025"
+    },
+    {
+      "type": "price_change",
+      "player": "Bruno B.Fernandes",
+      "team": "Man Utd",
+      "change_type": "rise",
+      "new_price": 9.1,
+      "date": "Thursday 11 December 2025"
+    },
+    {
+      "type": "price_change",
+      "player": "Djed Spence",
+      "team": "Spurs",
+      "change_type": "fall",
+      "new_price": 4.3,
+      "date": "Thursday 11 December 2025"
+    },
+    {
+      "type": "status",
+      "player": "Wesley Fofana",
+      "team": "Chelsea",
+      "status": "Eye Injury - 75% chance of playing",
+      "date": "Thursday 11 December 2025"
+    },
+    {
+      "type": "status",
+      "player": "Max Dowman",
+      "team": "Arsenal",
+      "status": "Ankle injury - Unknown return date",
+      "date": "Thursday 11 December 2025"
+    },
+    {
+      "type": "status",
+      "player": "Declan Rice",
+      "team": "Arsenal",
+      "status": "Illness - 75% chance of playing",
+      "date": "Thursday 11 December 2025"
+    },
+    {
+      "type": "status",
+      "player": "John Stones",
+      "team": "Man City",
+      "status": "Leg injury - 50% chance of playing",
+      "date": "Thursday 11 December 2025"
+    },
+    {
+      "type": "status",
+      "player": "Reiss Nelson",
+      "team": "Brentford",
+      "status": "Knock - 75% chance of playing",
+      "date": "Wednesday 10 December 2025"
+    },
+    {
+      "type": "status",
+      "player": "Jean-Ricner Bellegarde",
+      "team": "Wolves",
+      "status": "Knock - 75% chance of playing",
+      "date": "Wednesday 10 December 2025"
+    },
+    {
+      "type": "status",
+      "player": "Marshall Munetsi",
+      "team": "Wolves",
+      "status": "Calf injury - Expected back 18 Jan",
+      "date": "Wednesday 10 December 2025"
+    },
+    {
+      "type": "status",
+      "player": "Liam Delap",
+      "team": "Chelsea",
+      "status": "Shoulder injury - Unknown return date",
+      "date": "Wednesday 10 December 2025"
+    },
+    {
+      "type": "status",
+      "player": "Cody Gakpo",
+      "team": "Liverpool",
+      "status": "Knock - Unknown return date",
+      "date": "Wednesday 10 December 2025"
+    },
+    {
+      "type": "status",
+      "player": "Diogo Dalot Teixeira",
+      "team": "Man Utd",
+      "status": "Availability is now 100%",
+      "date": "Wednesday 10 December 2025"
+    },
+    {
+      "type": "status",
+      "player": "Destiny Udogie",
+      "team": "Spurs",
+      "status": "Hamstring injury - Expected back 17 Jan",
+      "date": "Wednesday 10 December 2025"
+    },
+    {
+      "type": "status",
+      "player": "Ladislav Krejcí",
+      "team": "Wolves",
+      "status": "Availability is now 100%",
+      "date": "Wednesday 10 December 2025"
+    },
+    {
+      "type": "status",
+      "player": "Fer López González",
+      "team": "Wolves",
+      "status": "Availability is now 100%",
+      "date": "Wednesday 10 December 2025"
+    },
+    {
+      "type": "price_change",
+      "player": "Kepa Arrizabalaga",
+      "team": "Arsenal",
+      "change_type": "fall",
+      "new_price": 4.1,
+      "date": "Wednesday 10 December 2025"
+    },
+    {
+      "type": "price_change",
+      "player": "Jaidon Anthony",
+      "team": "Burnley",
+      "change_type": "fall",
+      "new_price": 5.3,
+      "date": "Wednesday 10 December 2025"
+    },
+    {
+      "type": "price_change",
+      "player": "Mark Travers",
+      "team": "Everton",
+      "change_type": "fall",
+      "new_price": 4.3,
+      "date": "Wednesday 10 December 2025"
+    },
+    {
+      "type": "price_change",
+      "player": "Harry Wilson",
+      "team": "Fulham",
+      "change_type": "rise",
+      "new_price": 5.3,
+      "date": "Wednesday 10 December 2025"
+    },
+    {
+      "type": "price_change",
+      "player": "Phil Foden",
+      "team": "Man City",
+      "change_type": "rise",
+      "new_price": 8.6,
+      "date": "Wednesday 10 December 2025"
+    },
+    {
+      "type": "price_change",
+      "player": "Harry Maguire",
+      "team": "Man Utd",
+      "change_type": "fall",
+      "new_price": 4.3,
+      "date": "Wednesday 10 December 2025"
+    },
+    {
+      "type": "price_change",
+      "player": "Dan Ndoye",
+      "team": "Nott'm Forest",
+      "change_type": "fall",
+      "new_price": 5.5,
+      "date": "Wednesday 10 December 2025"
+    },
+    {
+      "type": "bonus",
+      "home_team": "Wolves",
+      "away_team": null,
+      "players": [
+        {
+          "player": "Man UtdB.Fernandes",
+          "bonus_points": 3,
+          "total_points": 18
+        },
+        {
+          "player": "Mbeumo",
+          "bonus_points": 2,
+          "total_points": 8
+        },
+        {
+          "player": "Amad",
+          "bonus_points": 1,
+          "total_points": 6
+        }
+      ],
+      "date": "Tuesday 09 December 2025"
+    },
+    {
+      "type": "match_update",
+      "content": "FTWolves1 -4Man Utd",
+      "date": "Tuesday 09 December 2025"
+    },
+    {
+      "type": "yellow_card",
+      "player": "Zirkzee",
+      "team": "Man Utd",
+      "points": -1,
+      "total_points": -1,
+      "date": "Tuesday 09 December 2025"
+    },
+    {
+      "type": "goal",
+      "home_team": "Wolves",
+      "away_team": null,
+      "home_score": 1,
+      "away_score": 4,
+      "scorer": "Man Utd",
+      "scorer_points": 5,
+      "scorer_total": 15,
+      "assist": "B.Fernandes",
+      "assist_points": 3,
+      "assist_total": 5,
+      "date": "Tuesday 09 December 2025"
+    },
+    {
+      "type": "yellow_card",
+      "player": "Mosquera",
+      "team": "Wolves",
+      "points": -1,
+      "total_points": -1,
+      "date": "Tuesday 09 December 2025"
+    },
+    {
+      "type": "goal",
+      "home_team": "Wolves",
+      "away_team": null,
+      "home_score": 1,
+      "away_score": 3,
+      "scorer": "Man Utd",
+      "scorer_points": 5,
+      "scorer_total": 7,
+      "assist": "Mount",
+      "assist_points": 3,
+      "assist_total": 10,
+      "date": "Tuesday 09 December 2025"
+    },
+    {
+      "type": "goal",
+      "home_team": "Wolves",
+      "away_team": null,
+      "home_score": 1,
+      "away_score": 2,
+      "scorer": "Man Utd",
+      "scorer_points": 5,
+      "scorer_total": 5,
+      "assist": "Mbeumo",
+      "assist_points": 3,
+      "assist_total": 4,
+      "date": "Tuesday 09 December 2025"
+    },
+    {
+      "type": "yellow_card",
+      "player": "Krejčí",
+      "team": "Wolves",
+      "points": -1,
+      "total_points": -1,
+      "date": "Tuesday 09 December 2025"
+    },
+    {
+      "type": "goal",
+      "home_team": "Man Utd",
+      "away_team": null,
+      "home_score": 1,
+      "away_score": 1,
+      "scorer": "Wolves",
+      "scorer_points": 5,
+      "scorer_total": 6,
+      "assist": "Bellegarde",
+      "assist_points": 3,
+      "assist_total": 4,
+      "date": "Tuesday 09 December 2025"
+    },
+    {
+      "type": "match_update",
+      "content": "HTWolves1 -1Man Utd",
+      "date": "Tuesday 09 December 2025"
+    },
+    {
+      "type": "yellow_card",
+      "player": "Strand Larsen",
+      "team": "Wolves",
+      "points": -1,
+      "total_points": -1,
+      "date": "Tuesday 09 December 2025"
+    },
+    {
+      "type": "yellow_card",
+      "player": "Mbeumo",
+      "team": "Man Utd",
+      "points": -1,
+      "total_points": -1,
+      "date": "Tuesday 09 December 2025"
+    },
+    {
+      "type": "saves",
+      "player": "Johnstone",
+      "team": "Wolves",
+      "points": 1,
+      "total_points": 2,
+      "date": "Tuesday 09 December 2025"
+    },
+    {
+      "type": "goal",
+      "home_team": "Wolves",
+      "away_team": null,
+      "home_score": 0,
+      "away_score": 1,
+      "scorer": "Man Utd",
+      "scorer_points": 5,
+      "scorer_total": 6,
+      "assist": "B.Fernandes",
+      "assist_points": 3,
+      "assist_total": 4,
+      "date": "Tuesday 09 December 2025"
+    },
+    {
+      "type": "match_update",
+      "content": "KOWolves0 -0Man Utd",
+      "date": "Tuesday 09 December 2025"
+    },
+    {
+      "type": "team_news",
+      "content": "? Wolves XI: Johnstone, Mosquera, Agbadou, Gomes, Hoever, André, Krejčí, Wolfe, Bellegarde, Arias, Larsen\n\nSubs: Sá, Bueno, Bueno, Tchatchoua, Hee-chan, Arokodare, Chirewa, Lopez Gonzalez, Mane\n#WOLMUN",
+      "date": "Tuesday 09 December 2025"
+    },
+    {
+      "type": "team_news",
+      "content": "? Manchester United XI: Lammens, Mazraoui, Heaven, Shaw, Diallo, Casemiro, Fernandes, Dalot, Mbeumo, Mount, Cunha\n\nSubs: Bayındır, Martínez, Malacia, Dorgu, Yoro, Ugarte, Mainoo, Zirkzee, Lacey\n#WOLMUN",
+      "date": "Tuesday 09 December 2025"
+    },
+    {
+      "type": "status",
+      "player": "John Stones",
+      "team": "Man City",
+      "status": "Knock - 75% chance of playing",
+      "date": "Tuesday 09 December 2025"
+    },
+    {
+      "type": "status",
+      "player": "Destiny Udogie",
+      "team": "Spurs",
+      "status": "Muscle injury - 75% chance of playing",
+      "date": "Tuesday 09 December 2025"
+    },
+    {
+      "type": "status",
+      "player": "Evann Guessand",
+      "team": "Aston Villa",
+      "status": "Knock - 75% chance of playing",
+      "date": "Tuesday 09 December 2025"
+    },
+    {
+      "type": "status",
+      "player": "Habib Diarra",
+      "team": "Sunderland",
+      "status": "Groin Injury - Expected back 20 Dec",
+      "date": "Tuesday 09 December 2025"
+    },
+    {
+      "type": "status",
+      "player": "Reinildo Mandava",
+      "team": "Sunderland",
+      "status": "Groin Injury - 75% chance of playing",
+      "date": "Tuesday 09 December 2025"
+    },
+    {
+      "type": "status",
+      "player": "Georginio Rutter",
+      "team": "Brighton",
+      "status": "Availability is now 100%",
+      "date": "Tuesday 09 December 2025"
+    },
+    {
+      "type": "status",
+      "player": "Daniel Muñoz Mejía",
+      "team": "Crystal Palace",
+      "status": "Knee injury - 75% chance of playing",
+      "date": "Tuesday 09 December 2025"
+    },
+    {
+      "type": "status",
+      "player": "Borna Sosa",
+      "team": "Crystal Palace",
+      "status": "Availability is now 100%",
+      "date": "Tuesday 09 December 2025"
+    },
+    {
+      "type": "status",
+      "player": "Ryan Sessegnon",
+      "team": "Fulham",
+      "status": "Hamstring injury - 75% chance of playing",
+      "date": "Tuesday 09 December 2025"
+    },
+    {
+      "type": "status",
+      "player": "Crysencio Summerville",
+      "team": "West Ham",
+      "status": "Availability is now 100%",
+      "date": "Tuesday 09 December 2025"
+    },
+    {
+      "type": "price_change",
+      "player": "Gabriel Gabriel",
+      "team": "Arsenal",
+      "change_type": "fall",
+      "new_price": 6.2,
+      "date": "Tuesday 09 December 2025"
+    },
+    {
+      "type": "price_change",
+      "player": "Bukayo Saka",
+      "team": "Arsenal",
+      "change_type": "rise",
+      "new_price": 10.2,
+      "date": "Tuesday 09 December 2025"
+    },
+    {
+      "type": "price_change",
+      "player": "Matty Cash",
+      "team": "Aston Villa",
+      "change_type": "rise",
+      "new_price": 4.8,
+      "date": "Tuesday 09 December 2025"
+    },
+    {
+      "type": "price_change",
+      "player": "Kadan Young",
+      "team": "Aston Villa",
+      "change_type": "fall",
+      "new_price": 4.3,
+      "date": "Tuesday 09 December 2025"
+    },
+    {
+      "type": "price_change",
+      "player": "Carlos Baleba",
+      "team": "Brighton",
+      "change_type": "fall",
+      "new_price": 4.6,
+      "date": "Tuesday 09 December 2025"
+    },
+    {
+      "type": "price_change",
+      "player": "Enock Boateng",
+      "team": "Burnley",
+      "change_type": "fall",
+      "new_price": 4.7,
+      "date": "Tuesday 09 December 2025"
+    },
+    {
+      "type": "price_change",
+      "player": "Trevoh Chalobah",
+      "team": "Chelsea",
+      "change_type": "rise",
+      "new_price": 5.3,
+      "date": "Tuesday 09 December 2025"
+    },
+    {
+      "type": "price_change",
+      "player": "Enzo Enzo",
+      "team": "Chelsea",
+      "change_type": "fall",
+      "new_price": 6.6,
+      "date": "Tuesday 09 December 2025"
+    },
+    {
+      "type": "price_change",
+      "player": "Tyrique George",
+      "team": "Chelsea",
+      "change_type": "fall",
+      "new_price": 4.8,
+      "date": "Tuesday 09 December 2025"
+    },
+    {
+      "type": "price_change",
+      "player": "Kiernan Dewsbury-Hall",
+      "team": "Everton",
+      "change_type": "rise",
+      "new_price": 5.1,
+      "date": "Tuesday 09 December 2025"
+    },
+    {
+      "type": "price_change",
+      "player": "Sam Byram",
+      "team": "Leeds",
+      "change_type": "fall",
+      "new_price": 3.8,
+      "date": "Tuesday 09 December 2025"
+    },
+    {
+      "type": "price_change",
+      "player": "Alexis Mac Allister",
+      "team": "Liverpool",
+      "change_type": "fall",
+      "new_price": 6.2,
+      "date": "Tuesday 09 December 2025"
+    },
+    {
+      "type": "price_change",
+      "player": "Rio Ngumoha",
+      "team": "Liverpool",
+      "change_type": "fall",
+      "new_price": 4.3,
+      "date": "Tuesday 09 December 2025"
+    },
+    {
+      "type": "price_change",
+      "player": "Joško Gvardiol",
+      "team": "Man City",
+      "change_type": "rise",
+      "new_price": 5.9,
+      "date": "Tuesday 09 December 2025"
+    },
+    {
+      "type": "price_change",
+      "player": "Stefan Ortega Moreno",
+      "team": "Man City",
+      "change_type": "fall",
+      "new_price": 4.7,
+      "date": "Tuesday 09 December 2025"
+    },
+    {
+      "type": "price_change",
+      "player": "Chido Obi",
+      "team": "Man Utd",
+      "change_type": "fall",
+      "new_price": 4.2,
+      "date": "Tuesday 09 December 2025"
+    },
+    {
+      "type": "price_change",
+      "player": "Pedro Pedro Porro",
+      "team": "Spurs",
+      "change_type": "fall",
+      "new_price": 5.3,
+      "date": "Tuesday 09 December 2025"
+    },
+    {
+      "type": "price_change",
+      "player": "Omar Alderete",
+      "team": "Sunderland",
+      "change_type": "fall",
+      "new_price": 4.0,
+      "date": "Tuesday 09 December 2025"
+    },
+    {
+      "type": "price_change",
+      "player": "Jay Matete",
+      "team": "Sunderland",
+      "change_type": "fall",
+      "new_price": 4.3,
+      "date": "Tuesday 09 December 2025"
+    },
+    {
+      "type": "bonus",
+      "home_team": "West Ham",
+      "away_team": null,
+      "players": [
+        {
+          "player": "West HamDe Cuyper",
+          "bonus_points": 2,
+          "total_points": 8
+        },
+        {
+          "player": "Georginio",
+          "bonus_points": 1,
+          "total_points": 8
+        }
+      ],
+      "date": "Monday 08 December 2025"
+    },
+    {
+      "type": "bonus",
+      "home_team": "Bournemouth",
+      "away_team": null,
+      "players": [
+        {
+          "player": "ChelseaGusto",
+          "bonus_points": 1,
+          "total_points": 7
+        }
+      ],
+      "date": "Monday 08 December 2025"
+    },
+    {
+      "type": "bonus",
+      "home_team": "Fulham",
+      "away_team": null,
+      "players": [
+        {
+          "player": "Crystal PalaceNketiah",
+          "bonus_points": 3,
+          "total_points": 9
+        },
+        {
+          "player": "Wharton",
+          "bonus_points": 2,
+          "total_points": 9
+        }
+      ],
+      "date": "Monday 08 December 2025"
+    },
+    {
+      "type": "bonus",
+      "home_team": "Fulham",
+      "away_team": "Crystal Palace",
+      "players": [
+        {
+          "player": "Crystal PalaceWilson",
+          "bonus_points": 1,
+          "total_points": 8
+        }
+      ],
+      "date": "Monday 08 December 2025"
+    },
+    {
+      "type": "bonus",
+      "home_team": "Brighton",
+      "away_team": null,
+      "players": [
+        {
+          "player": "West HamBowen",
+          "bonus_points": 3,
+          "total_points": 9
+        }
+      ],
+      "date": "Monday 08 December 2025"
+    },
+    {
+      "type": "match_update",
+      "content": "FTFulham1 -2Crystal Palace",
+      "date": "Monday 08 December 2025"
+    },
+    {
+      "type": "goal",
+      "home_team": "Fulham",
+      "away_team": null,
+      "home_score": 1,
+      "away_score": 2,
+      "scorer": "Crystal Palace",
+      "scorer_points": 6,
+      "scorer_total": 8,
+      "assist": "Guéhi",
+      "assist_points": 3,
+      "assist_total": 5,
+      "date": "Monday 08 December 2025"
+    },
+    {
+      "type": "saves",
+      "player": "Leno",
+      "team": "Fulham",
+      "points": 1,
+      "total_points": 3,
+      "date": "Monday 08 December 2025"
+    },
+    {
+      "type": "saves",
+      "player": "Henderson",
+      "team": "Crystal Palace",
+      "points": 1,
+      "total_points": 3,
+      "date": "Monday 08 December 2025"
+    },
+    {
+      "type": "goal",
+      "home_team": "Crystal Palace",
+      "away_team": null,
+      "home_score": 1,
+      "away_score": 1,
+      "scorer": "Fulham",
+      "scorer_points": -5,
+      "scorer_total": 1,
+      "assist": "Smith Rowe",
+      "assist_points": -3,
+      "assist_total": 1,
+      "date": "Monday 08 December 2025"
+    },
+    {
+      "type": "goal",
+      "home_team": "Crystal Palace",
+      "away_team": null,
+      "home_score": 1,
+      "away_score": 1,
+      "scorer": "Fulham",
+      "scorer_points": 5,
+      "scorer_total": 6,
+      "assist": "Smith Rowe",
+      "assist_points": 3,
+      "assist_total": 4,
+      "date": "Monday 08 December 2025"
+    },
+    {
+      "type": "match_update",
+      "content": "HTFulham1 -1Crystal Palace",
+      "date": "Monday 08 December 2025"
+    },
+    {
+      "type": "goal",
+      "home_team": "Crystal Palace",
+      "away_team": null,
+      "home_score": 1,
+      "away_score": 1,
+      "scorer": "Fulham",
+      "scorer_points": 5,
+      "scorer_total": 6,
+      "assist": "Wilson",
+      "assist_points": 3,
+      "assist_total": 4,
+      "date": "Monday 08 December 2025"
+    },
+    {
+      "type": "goal",
+      "home_team": "Fulham",
+      "away_team": null,
+      "home_score": 0,
+      "away_score": 1,
+      "scorer": "Crystal Palace",
+      "scorer_points": 4,
+      "scorer_total": 5,
+      "assist": "Nketiah",
+      "assist_points": 3,
+      "assist_total": 4,
+      "date": "Monday 08 December 2025"
+    },
+    {
+      "type": "match_update",
+      "content": "KOFulham0 -0Crystal Palace",
+      "date": "Monday 08 December 2025"
+    },
+    {
+      "type": "match_update",
+      "content": "FTBrighton1 -1West Ham",
+      "date": "Monday 08 December 2025"
+    },
+    {
+      "type": "goal",
+      "home_team": "West Ham",
+      "away_team": null,
+      "home_score": 1,
+      "away_score": 1,
+      "scorer": "Brighton",
+      "scorer_points": 5,
+      "scorer_total": 7,
+      "assist": "Georginio",
+      "assist_points": 3,
+      "assist_total": 5,
+      "date": "Monday 08 December 2025"
+    },
+    {
+      "type": "saves",
+      "player": "Areola",
+      "team": "West Ham",
+      "points": 1,
+      "total_points": 7,
+      "date": "Monday 08 December 2025"
+    }
+  ]
+}
