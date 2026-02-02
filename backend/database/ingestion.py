@@ -4,16 +4,14 @@ import logging
 import time
 from datetime import datetime, timezone
 
-# --- Path Setup ---
-# Add the project root to sys.path to allow imports from backend.*
 current_dir = os.path.dirname(os.path.abspath(__file__))
 project_root = os.path.abspath(os.path.join(current_dir, "../../"))
 sys.path.append(project_root)
 
 # --- Imports ---
-from backend.data.api_client import bootstrap_static, fixtures
-from backend.data.player_injury_status import get_all_players
+from backend.data.core.api_client import bootstrap_static, fixtures
 from backend.database.db import get_db
+from backend.data.scrapers.videoprinter_data import fetch_updates
 from pymongo import ASCENDING, DESCENDING
 
 # --- Logging Configuration ---
@@ -57,6 +55,52 @@ def create_indexes(db):
     db.fixtures.create_index([("team_a", ASCENDING)]) # Filter by Away Team
     db.fixtures.create_index([("kickoff_time", ASCENDING)])
 
+    # 1. Price Changes Collection
+    db.price_changes.create_index([
+        ("player", ASCENDING),
+        ("timestamp", DESCENDING)
+    ], unique=True)
+    db.price_changes.create_index([("team", ASCENDING)])
+    db.price_changes.create_index([("change_type", ASCENDING)])  # "rise" or "fall"
+    db.price_changes.create_index([("timestamp", DESCENDING)])
+
+    # 2. Player Status/Injuries Collection
+    db.player_status.create_index([
+        ("player", ASCENDING),
+        ("timestamp", DESCENDING)
+    ])
+    db.player_status.create_index([("team", ASCENDING)])
+    db.player_status.create_index([("status", "text")])  # Full-text search on injury description
+
+    # 3. Match Events Collection (goals, cards, saves, etc.)
+    db.match_events.create_index([
+        ("home_team", ASCENDING),
+        ("event_type", ASCENDING),
+        ("timestamp", DESCENDING)
+    ])
+    db.match_events.create_index([("player", ASCENDING)])
+    db.match_events.create_index([("event_type", ASCENDING)])  # "goal", "yellow_card", etc.
+    db.match_events.create_index([("timestamp", DESCENDING)])
+
+    # 4. Bonus Points Collection
+    db.bonus_points.create_index([
+        ("home_team", ASCENDING),
+        ("timestamp", DESCENDING)
+    ])
+    db.bonus_points.create_index([("timestamp", DESCENDING)])
+
+    # 5. Match Updates Collection (KO, HT, FT)
+    db.match_updates.create_index([
+        ("home_team", ASCENDING),
+        ("away_team", ASCENDING),
+        ("timestamp", DESCENDING)
+    ])
+    db.match_updates.create_index([("timestamp", DESCENDING)])
+
+    # 6. Team News Collection
+    db.team_news.create_index([("timestamp", DESCENDING)])
+    db.team_news.create_index([("content", "text")])  # Full-text search
+
     logger.info("✅ Indexes created successfully.")
 
 def update_static_data():
@@ -92,9 +136,9 @@ def update_static_data():
             db.teams.insert_many(teams)
         
         # --- STEP 3: Process & Insert Players (Elements) ---
-        # raw_players = bootstrap.get("elements", [])
-        logger.info("📡 Fetching player profiles from player_data.py...")
-        raw_players = get_all_players()
+        raw_players = bootstrap.get("elements", [])
+        logger.info(f"📡 Fetched {len(raw_players)} player profiles from bootstrap-static...")
+        # raw_players = get_all_players()
         # Filter: Optional - remove players who have left the league (status = 'u')
         # keeping 'i' (injured) and 's' (suspended) as they are still entities
         active_players = [p for p in raw_players if p.get("status") != "u"]
@@ -120,7 +164,10 @@ def update_static_data():
             db.fixtures.drop()
             db.fixtures.insert_many(all_fixtures)
 
-        # --- STEP 6: Apply Schema/Indexes ---
+        # --- STEP 6: Process & Insert Videoprinter Updates ---
+        update_videoprinter_data()
+
+        # --- STEP 7: Apply Schema/Indexes ---
         create_indexes(db)
         
         # --- STEP 7: Invalidate Cache ---
@@ -138,6 +185,91 @@ def update_static_data():
     except Exception as e:
         logger.error(f"❌ Data ingestion failed: {e}", exc_info=True)
         sys.exit(1)
+
+def update_videoprinter_data():
+    """
+    Fetch and upsert Videoprinter data (Price Changes, Status, Matches).
+    """
+    logger.info("📡 Fetching Videoprinter updates...")
+    try:
+        db = get_db()
+        vp_data = fetch_updates()
+        if vp_data and vp_data.get("updates"):
+            updates = vp_data["updates"]
+            timestamp = datetime.now(timezone.utc)
+            
+            # buckets for separating data
+            price_changes = []
+            player_statuses = []
+            match_events = []
+            bonus_points = []
+            match_updates = []
+            team_news = []
+            
+            for update in updates:
+                # Add ingestion timestamp to all
+                update["ingested_at"] = timestamp
+                # Ensure 'timestamp' field exists using scraped date if available
+                if "date" in update and update["date"]:
+                     update["timestamp"] = timestamp 
+                else:
+                     update["timestamp"] = timestamp
+
+                u_type = update.get("type")
+                
+                if u_type == "price_change":
+                    price_changes.append(update)
+                elif u_type == "status":
+                    player_statuses.append(update)
+                elif u_type in ["goal", "yellow_card", "red_card", "saves"]:
+                    update["event_type"] = u_type
+                    match_events.append(update)
+                elif u_type == "bonus":
+                    bonus_points.append(update)
+                elif u_type == "match_update":
+                    match_updates.append(update)
+                elif u_type == "team_news":
+                    team_news.append(update)
+
+            # Insert into separate collections
+            if price_changes:
+                # Deduplicate price changes
+                unique_prices = {}
+                for p in price_changes:
+                    unique_prices[p["player"]] = p
+                
+                deduped_price_changes = list(unique_prices.values())
+                
+                db.price_changes.delete_many({}) 
+                db.price_changes.drop() 
+                db.price_changes.insert_many(deduped_price_changes)
+                logger.info(f"Examples: {deduped_price_changes[0]}")
+                
+            if player_statuses:
+                db.player_status.drop()
+                db.player_status.insert_many(player_statuses)
+                
+            if match_events:
+                db.match_events.drop()
+                db.match_events.insert_many(match_events)
+                
+            if bonus_points:
+                db.bonus_points.drop()
+                db.bonus_points.insert_many(bonus_points)
+                
+            if match_updates:
+                db.match_updates.drop()
+                db.match_updates.insert_many(match_updates)
+                
+            if team_news:
+                db.team_news.drop()
+                db.team_news.insert_many(team_news)
+                
+            logger.info(f"💾 Upserted Videoprinter data: {len(price_changes)} prices, {len(match_events)} events, {len(player_statuses)} statuses")
+            
+    except Exception as e:
+        logger.error(f"Failed to update Videoprinter data: {e}")
+
 
 if __name__ == "__main__":
     update_static_data()

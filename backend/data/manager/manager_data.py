@@ -163,8 +163,8 @@ def get_manager_squad_data(entry_id: int, event_id: int = None) -> dict:
     Returns:
         Dict with starting_xi, bench, and player details
     """
-    from . import api_client, cache
-    from .utils import get_player_full_name, get_position_name
+    from backend.data.core import api_client, cache
+    from backend.data.core.utils import get_player_full_name, get_position_name
     
     # Get current gameweek if not specified
     if event_id is None:

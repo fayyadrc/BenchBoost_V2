@@ -1,10 +1,19 @@
 import React from 'react';
-import { ask, getOrCreateSessionId, getSavedManagerId } from './api/client';
+import { 
+  ask, 
+  getSavedManagerId, 
+  getChats, 
+  createChat, 
+  deleteChat, 
+  getChatHistory, 
+  type ChatSession 
+} from './api/client';
 import { useManager } from './context/ManagerContext';
 import Header from './components/Header';
 import WelcomeScreen from './components/WelcomeScreen';
 import ChatMessages from './components/ChatMessages';
 import ChatInput from './components/ChatInput';
+import ChatSidebar from './components/ChatSidebar';
 
 type Message = {
   role: 'user' | 'assistant';
@@ -16,6 +25,12 @@ const FPLChatbot = () => {
   const [input, setInput] = React.useState<string>('');
   const [isLoading, setIsLoading] = React.useState<boolean>(false);
   const [showSuggestions, setShowSuggestions] = React.useState<boolean>(true);
+  
+  // Sidebar & Session State
+  const [isSidebarOpen, setIsSidebarOpen] = React.useState(false);
+  const [sessions, setSessions] = React.useState<ChatSession[]>([]);
+  const [currentSessionId, setCurrentSessionId] = React.useState<string | null>(null);
+
   const messagesEndRef = React.useRef<HTMLDivElement | null>(null);
 
   const [theme, setTheme] = React.useState<'dark' | 'light'>(() => {
@@ -57,6 +72,68 @@ const FPLChatbot = () => {
     scrollToBottom();
   }, [messages]);
 
+  // Load chat sessions on mount
+  React.useEffect(() => {
+    loadSessions();
+  }, []);
+
+  const loadSessions = async () => {
+    try {
+      const data = await getChats();
+      setSessions(data);
+    } catch (err) {
+      console.error("Failed to load sessions", err);
+    }
+  };
+
+  const loadSessionHistory = async (sessionId: string) => {
+    setIsLoading(true);
+    try {
+      const data = await getChatHistory(sessionId);
+      const mappedMessages: Message[] = data.history.map((msg: any) => ({
+        role: msg.type === 'HumanMessage' ? 'user' : 'assistant',
+        content: msg.content
+      }));
+      setMessages(mappedMessages);
+      setShowSuggestions(mappedMessages.length === 0);
+    } catch (err) {
+        console.error("Failed to load history", err);
+    } finally {
+        setIsLoading(false);
+    }
+  };
+
+  const handleNewChat = () => {
+      setCurrentSessionId(null);
+      setMessages([]);
+      setShowSuggestions(true);
+      setIsSidebarOpen(false);
+  };
+
+  const handleSelectSession = (sessionId: string) => {
+      if (sessionId === currentSessionId) {
+          setIsSidebarOpen(false);
+          return;
+      }
+      setCurrentSessionId(sessionId);
+      loadSessionHistory(sessionId);
+      setIsSidebarOpen(false);
+  };
+
+  const handleDeleteChat = async (sessionId: string, e: React.MouseEvent) => {
+      e.stopPropagation();
+      if (!window.confirm("Delete this chat?")) return;
+      try {
+          await deleteChat(sessionId);
+          setSessions(prev => prev.filter(s => s.session_id !== sessionId));
+          if (currentSessionId === sessionId) {
+              handleNewChat();
+          }
+      } catch (err) {
+          console.error("Failed to delete chat", err);
+      }
+  };
+
   const handleSend = async (text: string = input) => {
     if (!text.trim() || isLoading) return;
 
@@ -67,11 +144,24 @@ const FPLChatbot = () => {
     setIsLoading(true);
 
     try {
-      const sessionId = getOrCreateSessionId();
+      let activeSessionId = currentSessionId;
+      
+      // Create session if first message
+      if (!activeSessionId) {
+          const newSession = await createChat();
+          activeSessionId = newSession.session_id;
+          setCurrentSessionId(activeSessionId);
+          loadSessions(); 
+      }
+
       const managerId = getSavedManagerId();
-      const res = await ask({ query: text, session_id: sessionId, manager_id: managerId });
+      const res = await ask({ query: text, session_id: activeSessionId!, manager_id: managerId });
+      
       const botResponse: Message = { role: 'assistant', content: res.answer };
       setMessages(prev => [...prev, botResponse]);
+      
+      loadSessions();
+      
     } catch (err: any) {
       const botResponse: Message = {
         role: 'assistant',
@@ -98,16 +188,28 @@ const FPLChatbot = () => {
 
   return (
     <div className={`min-h-screen transition-colors duration-300 ${isDark ? 'bg-slate-950' : 'bg-slate-50'}`}>
+      <ChatSidebar 
+        isOpen={isSidebarOpen}
+        onClose={() => setIsSidebarOpen(false)}
+        sessions={sessions}
+        currentSessionId={currentSessionId}
+        onSelectSession={handleSelectSession}
+        onNewChat={handleNewChat}
+        onDeleteChat={handleDeleteChat}
+        isDark={isDark}
+      />
+      
       <Header
         theme={theme}
         toggleTheme={toggleTheme}
         managerData={managerData}
-        managerId={managerId}
+        managerId={managerId || ''}
         setManagerId={setManagerId}
         managerLoading={managerLoading}
         managerError={managerError}
         handleManagerSubmit={handleManagerSubmit}
         clearManager={clearManager}
+        onMenuClick={() => setIsSidebarOpen(true)}
       />
 
       <div className="max-w-4xl mx-auto px-4 sm:px-6 py-4 sm:py-8 flex flex-col min-h-[calc(100vh-72px)]">

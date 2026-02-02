@@ -18,7 +18,7 @@ project_root = os.path.abspath(os.path.join(current_dir, "../"))
 sys.path.append(project_root)
 
 from backend.data import cache
-from backend.database.ingestion import update_static_data
+from backend.database.ingestion import update_static_data, update_videoprinter_data
 
 logger = logging.getLogger(__name__)
 
@@ -111,6 +111,17 @@ def start_scheduler(
             replace_existing=True
         )
         logger.info(f"Scheduler started with interval: {refresh_interval_hours} hours")
+        
+        # Add separate job for Videoprinter updates (every 15 minutes for real-time updates)
+        _scheduler.add_job(
+            update_videoprinter_data,
+            'interval',
+            minutes=15,
+            id="fpl_videoprinter_refresh",
+            name="Videoprinter Update (Interval)",
+            replace_existing=True
+        )
+        logger.info("Scheduler added Videoprinter update job (every 15 minutes)")
     
     _scheduler.start()
     logger.info("Background scheduler is running")

@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { Moon, Sun, User } from 'lucide-react';
+import { Moon, Sun, User, Menu } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import ManagerInfo from './ManagerInfo';
@@ -17,6 +17,7 @@ interface HeaderProps {
     managerError: string | null;
     handleManagerSubmit: (e: React.FormEvent) => void;
     clearManager: () => void;
+    onMenuClick: () => void;
 }
 
 const Header: React.FC<HeaderProps> = ({
@@ -28,6 +29,7 @@ const Header: React.FC<HeaderProps> = ({
     managerLoading,
     managerError,
     handleManagerSubmit,
+    onMenuClick,
     clearManager,
 }) => {
     const isDark = theme === 'dark';
@@ -37,6 +39,14 @@ const Header: React.FC<HeaderProps> = ({
             <div className="max-w-4xl mx-auto px-3 sm:px-6 py-3 sm:py-4">
                 <div className="flex items-center justify-between gap-2">
                     <div className="flex items-center gap-2 sm:gap-6">
+                        <button
+                            onClick={onMenuClick}
+                            className={`p-1.5 rounded-lg transition-colors mr-1 sm:mr-2
+                                ${isDark ? 'text-gray-400 hover:text-white hover:bg-white/10' : 'text-slate-500 hover:text-slate-900 hover:bg-slate-100'}
+                            `}
+                        >
+                            <Menu size={24} />
+                        </button>
                         <h1 className={`text-lg sm:text-2xl font-black uppercase tracking-tighter ${isDark ? 'text-white' : 'text-slate-900'}`}>
                             Bench<span className={isDark ? 'text-blue-600' : 'text-blue-600'} style={isDark ? { color: '#003566' } : {}}>Boost</span>
                         </h1>

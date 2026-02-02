@@ -12,11 +12,20 @@ Data Consistency:
 """
 
 from typing import Optional, Any, Dict, List
-from ..data import api_client, cache, livefpl_scrape, stats
-from ..data.utils import generate_player_summary, format_price, format_percentage
-from ..data.models import wrap_response
+from ..data import (
+    api_client, 
+    cache, 
+    livefpl_scrape, 
+    stats,
+    generate_player_summary,
+    format_price,
+    format_percentage,
+    wrap_response
+)
 from . import context_builder
 from langchain_core.tools import tool
+from ..database.db import get_db
+from pymongo import DESCENDING
 
 
 # -----------------------------
@@ -369,7 +378,7 @@ def get_manager_squad(entry_id: int, event_id: Optional[int] = None) -> Dict:
     Returns:
         Dict with starting_xi, bench, and player details (name, team, position, form, points, fixtures)
     """
-    from ..data.manager_data import get_manager_squad_data
+    from ..data.manager.manager_data import get_manager_squad_data
     return get_manager_squad_data(entry_id, event_id)
 
 
@@ -377,6 +386,42 @@ def get_manager_squad(entry_id: int, event_id: Optional[int] = None) -> Dict:
 def get_live_gameweek_data(entry_id: int, session: Optional[Any] = None, timeout: Optional[int] = None) -> Dict:
     """Get a manager's live GW performance."""
     return livefpl_scrape.scrape_livefpl_data(entry_id)
+
+
+@tool
+def get_videoprinter_updates(limit: int = 15, update_type: Optional[str] = None) -> Dict[str, List[Dict]]:
+    """
+    Get the latest live updates from the FPL Videoprinter.
+    
+    Includes goals, price changes, player status/injuries, and bonus points.
+    
+    Args:
+        limit: Number of updates to return per category
+        update_type: Optional filter (price_change, status, match_event, bonus)
+        
+    Returns:
+        Dict with keys for each category containing list of events
+    """
+    db = get_db()
+    result = {}
+    
+    # 1. Price Changes
+    if not update_type or update_type == "price_change":
+        result["price_changes"] = list(db.price_changes.find({}, {"_id": 0}).sort("timestamp", DESCENDING).limit(limit))
+        
+    # 2. Player Status (Injuries/News)
+    if not update_type or update_type == "status":
+        result["player_status"] = list(db.player_status.find({}, {"_id": 0}).sort("timestamp", DESCENDING).limit(limit))
+        
+    # 3. Match Events (Goals, Cards, etc)
+    if not update_type or update_type == "match_event":
+         result["match_events"] = list(db.match_events.find({}, {"_id": 0}).sort("timestamp", DESCENDING).limit(limit))
+         
+    # 4. Bonus Points
+    if not update_type or update_type == "bonus":
+         result["bonus_points"] = list(db.bonus_points.find({}, {"_id": 0}).sort("timestamp", DESCENDING).limit(limit))
+         
+    return result
 
 
 # -----------------------------
@@ -539,6 +584,7 @@ all_tools = [
     get_manager_info,
     get_manager_squad,
     get_live_gameweek_data,
+    get_videoprinter_updates,
     
     # Knowledge base
     search_knowledge_base,

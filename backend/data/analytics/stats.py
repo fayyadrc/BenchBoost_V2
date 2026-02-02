@@ -3,9 +3,9 @@
 from typing import Any, Dict, Optional, List
 from datetime import datetime
 import requests
-from .api_client import bootstrap_static, DEFAULT_TIMEOUT
+from ..core.api_client import bootstrap_static, DEFAULT_TIMEOUT
 from .fpl_rules import FPL_RULES_KNOWLEDGE, FPL_SEARCHABLE_RULES
-from .utils import (
+from ..core.utils import (
     get_player_full_name,
     get_position_name,
     calculate_player_stats,
@@ -16,7 +16,7 @@ from .utils import (
     classify_transfer_trend,
     enrich_player_data,
 )
-from .constants import POSITION_NAME_TO_ID, VALID_PLAYER_METRICS
+from ..core.constants import POSITION_NAME_TO_ID, VALID_PLAYER_METRICS
 
 
 def get_all_players_with_stats(

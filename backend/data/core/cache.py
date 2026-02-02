@@ -13,6 +13,8 @@ from datetime import datetime, timedelta
 from dataclasses import dataclass
 import logging
 import requests
+from pymongo import DESCENDING
+from backend.database.db import get_db
 from .api_client import bootstrap_static, fixtures, DEFAULT_TIMEOUT
 
 logger = logging.getLogger(__name__)
@@ -368,33 +370,119 @@ def get_upcoming_fixtures_for_team(team_id: int, num_fixtures: int = 3) -> list:
     return upcoming
 
 
+def format_time_ago(dt):
+    """Format datetime as time ago string."""
+    if not dt:
+        return ""
+    if isinstance(dt, str):
+        try:
+            # Try parsing isoformat if it's a string
+            dt = datetime.fromisoformat(dt.replace('Z', '+00:00'))
+        except:
+            return dt
+            
+    now = datetime.now(dt.tzinfo)
+    diff = now - dt
+    
+    seconds = diff.total_seconds()
+    if seconds < 60:
+        return "Just now"
+    elif seconds < 3600:
+        return f"{int(seconds // 60)}m ago"
+    elif seconds < 86400:
+        return f"{int(seconds // 3600)}h ago"
+    else:
+        return f"{int(seconds // 86400)}d ago"
+
 def get_cached_player_news(force_refresh: bool = False) -> list:
     """
-    Get player news (injuries/price changes) with caching.
-    
-    Args:
-        force_refresh: Force a fresh scrape
-        
-    Returns:
-        List of news items
+    Get aggregated player news from MongoDB (Price Changes, Status, Matches).
+    Mapped to frontend schema.
     """
-    cache_key = "player_news_alerts"
-    
-    # Check cache first
-    if not force_refresh:
-        cached = _get_from_cache(cache_key)
-        if cached is not None:
-            return cached
-            
-    # If not in cache or forced refresh, fetch fresh data
     try:
-        from .player_injury_status import scrape_fpl_alerts
-        logger.info("Scraping fresh player news...")
-        news = scrape_fpl_alerts()
+        db = get_db()
+        news_items = []
+        limit = 20
         
-        # Cache for 15 minutes (900 seconds)
-        _set_in_cache(cache_key, news, ttl_seconds=10800)
-        return news
+        # 1. Price Changes
+        # Schema: {player, change_type, new_price, timestamp}
+        prices = list(db.price_changes.find({}, {"_id": 0}).sort("timestamp", DESCENDING).limit(limit))
+        for p in prices:
+            news_items.append({
+                "type": "price_change",
+                "player": p.get("player"),
+                "movement": "risen" if p.get("change_type") == "rise" else "fallen",
+                "price_text": f"£{p.get('new_price')}m",
+                "date": format_time_ago(p.get("timestamp")),
+                "raw_timestamp": p.get("timestamp")
+            })
+            
+        # 2. Player Status
+        # Schema: {player, status, team, timestamp}
+        statuses = list(db.player_status.find({}, {"_id": 0}).sort("timestamp", DESCENDING).limit(limit))
+        for p in statuses:
+            news_items.append({
+                "type": "status",
+                "player": p.get("player"),
+                "status": p.get("status"),
+                "date": format_time_ago(p.get("timestamp")),
+                "raw_timestamp": p.get("timestamp")
+            })
+
+        # 3. Match Events (Goals, cards, saves)
+        # Schema: {event_type, player, timestamp, ...}
+        events = list(db.match_events.find({}, {"_id": 0}).sort("timestamp", DESCENDING).limit(limit))
+        for e in events:
+            # Construct a status message based on event type
+            etype = e.get("event_type")
+            msg = etype.replace("_", " ").title()
+            
+            if etype == "goal":
+                msg = f"GOAL! {e.get('scorer')} scores"
+                if e.get("assist"):
+                    msg += f" (Assist: {e.get('assist')})"
+            elif etype in ["yellow_card", "red_card"]:
+                msg = f"{etype.replace('_', ' ').title()} - {e.get('points')} pts"
+                
+            news_items.append({
+                "type": "match_event",
+                "player": e.get("scorer", e.get("player")), # Use scorer or player field
+                "status": msg,
+                "date": format_time_ago(e.get("timestamp")),
+                "raw_timestamp": e.get("timestamp")
+            })
+            
+        # 4. Bonus Points
+        bonuses = list(db.bonus_points.find({}, {"_id": 0}).sort("timestamp", DESCENDING).limit(limit))
+        for b in bonuses:
+            # Flatten bonus players
+            players = b.get("players", [])
+            for player_bp in players:
+                news_items.append({
+                    "type": "bonus",
+                    "player": player_bp.get("player"),
+                    "status": f"Bonus Points: {player_bp.get('bonus_points')} pts (Total: {player_bp.get('total_points')})",
+                    "date": format_time_ago(b.get("timestamp")),
+                    "raw_timestamp": b.get("timestamp")
+                })
+                
+        # 5. Team News
+        team_news = list(db.team_news.find({}, {"_id": 0}).sort("timestamp", DESCENDING).limit(limit))
+        for t in team_news:
+            news_items.append({
+                "type": "team_news",
+                "player": "Team News",
+                "status": t.get("content"),
+                "date": format_time_ago(t.get("timestamp")),
+                "raw_timestamp": t.get("timestamp")
+            })
+
+        # Sort combined list by timestamp desc
+        news_items.sort(key=lambda x: x.get("raw_timestamp") or datetime.min, reverse=True)
+        
+        # Return top 50 mixed events
+        return news_items[:50]
+        
     except Exception as e:
-        logger.error(f"Failed to scrape player news: {e}")
+        logger.error(f"Failed to fetch aggregated news: {e}")
         return []

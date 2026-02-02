@@ -145,12 +145,47 @@ export async function getPlayerNews(): Promise<any[]> {
   }
 }
 
+export async function refreshPlayerNews(): Promise<any[]> {
+  try {
+    const response = await apiFetch('/api/news/refresh', { method: 'POST' });
+    return response.data || [];
+  } catch (error) {
+    console.warn('Failed to refresh news:', error);
+    return [];
+  }
+}
+
 export async function ask(req: QueryRequest): Promise<QueryResponse> {
   return apiFetch('/api/query', {
     method: 'POST',
     headers: jsonHeaders,
     body: JSON.stringify(req),
   });
+}
+
+// --- Chat History API ---
+
+export type ChatSession = {
+  session_id: string;
+  title: string;
+  created_at: string;
+  updated_at: string;
+};
+
+export async function getChats(): Promise<ChatSession[]> {
+  return apiFetch('/api/chats');
+}
+
+export async function createChat(): Promise<{ session_id: string }> {
+  return apiFetch('/api/chats', { method: 'POST' });
+}
+
+export async function deleteChat(sessionId: string): Promise<{ status: string }> {
+  return apiFetch(`/api/chats/${sessionId}`, { method: 'DELETE' });
+}
+
+export async function getChatHistory(sessionId: string): Promise<{ history: { type: string; content: string }[] }> {
+  return apiFetch(`/api/chats/${sessionId}`);
 }
 
 export function getOrCreateSessionId(): string {

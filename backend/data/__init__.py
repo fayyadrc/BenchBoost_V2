@@ -15,7 +15,11 @@ Modules:
     - stats: Player statistics and analysis
 """
 
-from .constants import (
+from .core import cache, api_client
+from .analytics import stats
+from .scrapers import livefpl_scrape
+
+from .core.constants import (
     POSITION_ID_TO_NAME,
     POSITION_NAME_TO_ID,
     POSITION_ID_TO_FULL_NAME,
@@ -30,7 +34,7 @@ from .constants import (
     METRIC_DISPLAY_NAMES,
 )
 
-from .models import (
+from .core.models import (
     Position,
     AvailabilityStatus,
     ChipType,
@@ -51,7 +55,7 @@ from .models import (
     wrap_response,
 )
 
-from .utils import (
+from .core.utils import (
     get_player_full_name,
     get_position_name,
     get_position_full_name,
@@ -87,6 +91,11 @@ __all__ = [
     "VALUE_THRESHOLDS",
     "VALID_PLAYER_METRICS",
     "METRIC_DISPLAY_NAMES",
+    # Modules
+    "api_client",
+    "cache",
+    "stats",
+    "livefpl_scrape",
     # Models
     "Position",
     "AvailabilityStatus",

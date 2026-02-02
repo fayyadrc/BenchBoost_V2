@@ -1,7 +1,7 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Bell, RefreshCw } from 'lucide-react';
-import { getPlayerNews } from '../api/client';
+import { getPlayerNews, refreshPlayerNews } from '../api/client';
 
 export const NewsDropdown: React.FC<{ isDark: boolean }> = ({ isDark }) => {
     const [isOpen, setIsOpen] = React.useState(false);
@@ -12,6 +12,18 @@ export const NewsDropdown: React.FC<{ isDark: boolean }> = ({ isDark }) => {
         setLoading(true);
         try {
             const data = await getPlayerNews();
+            setNews(data);
+        } catch (e) {
+            console.error(e);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleRefresh = async () => {
+        setLoading(true);
+        try {
+            const data = await refreshPlayerNews();
             setNews(data);
         } catch (e) {
             console.error(e);
@@ -48,7 +60,12 @@ export const NewsDropdown: React.FC<{ isDark: boolean }> = ({ isDark }) => {
                         >
                             <div className={`p-3 border-b-2 font-black uppercase text-sm flex justify-between items-center ${isDark ? 'border-white/10 text-white' : 'border-slate-100 text-slate-900'}`}>
                                 <span>Latest Updates</span>
-                                <button onClick={() => fetchNews()} disabled={loading}>
+                                <button 
+                                    onClick={handleRefresh} 
+                                    disabled={loading}
+                                    className="hover:opacity-70 transition-opacity"
+                                    title="Refresh latest updates"
+                                >
                                     <RefreshCw className={`w-3 h-3 ${loading ? 'animate-spin' : ''}`} />
                                 </button>
                             </div>

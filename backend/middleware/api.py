@@ -11,6 +11,15 @@ from pydantic import BaseModel
 from backend.agent.agent import create_agent
 from langchain_core.messages import AIMessage, HumanMessage
 from backend.data import cache
+from backend.database.db import (
+    get_all_chat_sessions, 
+    create_chat_session, 
+    delete_chat_session, 
+    get_chat_history_db, 
+    save_chat_message,
+    update_chat_title
+)
+from backend.agent.memory import serialize_message, deserialize_message
 
 # /Users/fayyadrc/Documents/Programming/FPLChatbot_V2/fplAI/backend/middleware/api.py
 
@@ -72,7 +81,7 @@ class QueryResponse(BaseModel):
     raw_output: Optional[Any] = None
 
 _AGENT_CACHE: Dict[str, Any] = {}
-_CHAT_HISTORY_CACHE: Dict[str, List[Any]] = {}
+# _CHAT_HISTORY_CACHE removed in favor of DB persistence
 
 # Helper to create an agent using the project's main implementation
 def _get_or_create_agent(session_id: str) -> Any:
@@ -85,11 +94,10 @@ def _get_or_create_agent(session_id: str) -> Any:
 
 # Ensure a chat history list exists per session
 def _get_chat_history(session_id: str) -> List[Any]:
-    hist = _CHAT_HISTORY_CACHE.get(session_id)
-    if hist is None:
-        hist = []
-        _CHAT_HISTORY_CACHE[session_id] = hist
-    return hist
+    raw_history = get_chat_history_db(session_id)
+    if not raw_history:
+        return []
+    return [deserialize_message(m) for m in raw_history]
 
 # Async wrapper to run agent.invoke in a worker thread (sync API)
 def _extract_status_code(exc: Exception) -> Optional[int]:
@@ -181,8 +189,13 @@ async def query_endpoint(req: QueryRequest):
         # Extract response and update chat history
         response_raw = result.get("output") if isinstance(result, dict) else result
         response_text = _coerce_to_text(response_raw if response_raw is not None else result)
-        chat_history.append(HumanMessage(content=req.query))
-        chat_history.append(AIMessage(content=response_text))
+        
+        # Save to DB persistence
+        human_msg = HumanMessage(content=req.query)
+        ai_msg = AIMessage(content=response_text)
+        
+        save_chat_message(session, serialize_message(human_msg))
+        save_chat_message(session, serialize_message(ai_msg))
 
         return QueryResponse(answer=response_text, raw_output=None)
     except Exception as e:
@@ -193,6 +206,33 @@ async def query_endpoint(req: QueryRequest):
                 detail="The language model provider is temporarily overloaded. Please try again shortly.",
             ) from e
         raise HTTPException(status_code=500, detail="Agent failed to process the request.") from e
+
+@app.get("/api/chats")
+async def list_chats():
+    """List all chat sessions."""
+    return get_all_chat_sessions()
+
+@app.post("/api/chats")
+async def create_new_chat():
+    """Create a new chat session."""
+    session_id = create_chat_session()
+    return {"session_id": session_id}
+
+@app.delete("/api/chats/{session_id}")
+async def delete_chat(session_id: str):
+    """Delete a chat session."""
+    delete_chat_session(session_id)
+    # Also clear from memory cache if present
+    if session_id in _AGENT_CACHE:
+        del _AGENT_CACHE[session_id]
+    return {"status": "deleted"}
+
+@app.get("/api/chats/{session_id}")
+async def get_chat_details(session_id: str):
+    """Get chat history for a session."""
+    history = _get_chat_history(session_id)
+    # Convert back to serializable format for frontend
+    return {"history": [serialize_message(m) for m in history]}
 
 @app.get("/api/health")
 async def health():
@@ -249,7 +289,7 @@ async def get_manager_team(entry_id: int, event: int = None):
     If event (gameweek) is not provided, uses the current gameweek.
     Returns the team with player details including name, position, team, points, etc.
     """
-    from backend.data.manager_data import get_manager_squad_data
+    from backend.data.manager.manager_data import get_manager_squad_data
     
     try:
         result = await asyncio.to_thread(get_manager_squad_data, entry_id, event)
@@ -267,10 +307,9 @@ async def get_manager_team(entry_id: int, event: int = None):
 @app.get("/api/news")
 async def get_player_news():
     """
-    Get the latest player news (injuries, price changes) from FPL Alerts.
-    Uses caching to avoid excessive scraping.
+    Get the latest player news (injuries, price changes) from MongoDB.
     """
-    from backend.data.cache import get_cached_player_news
+    from backend.data.core.cache import get_cached_player_news
     
     try:
         # Run in thread to avoid blocking
@@ -279,3 +318,23 @@ async def get_player_news():
     except Exception as e:
         logger.exception("Failed to fetch player news")
         return []
+
+@app.post("/api/news/refresh")
+async def refresh_player_news():
+    """
+    Manually trigger a refresh of videoprinter data (price changes, injuries, match events).
+    This only updates short-term live data, not static player/team data.
+    """
+    from backend.database.ingestion import update_videoprinter_data
+    
+    try:
+        logger.info("Manual videoprinter refresh triggered")
+        # Run in thread to avoid blocking
+        await asyncio.to_thread(update_videoprinter_data)
+        # Return fresh data
+        from backend.data.core.cache import get_cached_player_news
+        alerts = await asyncio.to_thread(get_cached_player_news)
+        return {"success": True, "message": "Data refreshed", "data": alerts}
+    except Exception as e:
+        logger.exception("Failed to refresh videoprinter data")
+        raise HTTPException(status_code=500, detail=f"Failed to refresh data: {str(e)}")

@@ -704,7 +704,7 @@ const ManagerPage: React.FC = () => {
             {/* Manager Header - Asymmetric layout */}
             <div className={`border-2 p-6 ${isDark ? 'border-white/20 bg-slate-900' : 'border-slate-900 bg-white'
               }`}>
-              <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+              <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
                 <div className="flex-1">
                   <div className="flex items-baseline gap-3 mb-2">
                     <h2 className={`text-3xl font-black uppercase tracking-tighter ${isDark ? 'text-white' : 'text-slate-900'
@@ -767,28 +767,30 @@ const ManagerPage: React.FC = () => {
                   </div>
                 </div>
 
-                <button
-                  onClick={clearManager}
-                  className={`px-6 py-3 border-2 font-bold uppercase tracking-wide transition-all hover:scale-105 ${isDark
-                    ? 'border-white/20 text-white hover:bg-white hover:text-slate-900'
-                    : 'border-slate-900 text-slate-900 hover:bg-slate-900 hover:text-white'
-                    }`}
-                >
-                  <X className="w-4 h-4 inline mr-2" />
-                  Change
-                </button>
+                <div className="flex items-center gap-3">
+                  <button
+                    onClick={clearManager}
+                    className={`flex items-center gap-2 px-3 py-1 border font-bold uppercase tracking-wide transition-all hover:scale-105 text-xs ${isDark
+                      ? 'border-white/20 text-white hover:bg-white hover:text-slate-900'
+                      : 'border-slate-900 text-slate-900 hover:bg-slate-900 hover:text-white'
+                      }`}
+                  >
+                    <X className="w-4 h-4" />
+                    Change
+                  </button>
 
-                <button
-                  onClick={forceRefresh}
-                  disabled={isRefreshing}
-                  className={`px-6 py-3 border-2 font-bold uppercase tracking-wide transition-all hover:scale-105 ${isDark
-                    ? 'border-blue-500/50 text-blue-400 hover:bg-blue-500 hover:text-white disabled:opacity-50'
-                    : 'border-blue-600 text-blue-600 hover:bg-blue-600 hover:text-white disabled:opacity-50'
-                    }`}
-                >
-                  <RefreshCw className={`w-4 h-4 inline mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
-                  {isRefreshing ? 'Refreshing...' : 'Refresh All'}
-                </button>
+                  <button
+                    onClick={forceRefresh}
+                    disabled={isRefreshing}
+                    className={`flex items-center gap-2 px-3 py-1 border font-bold uppercase tracking-wide transition-all hover:scale-105 text-xs ${isDark
+                      ? 'border-blue-500/50 text-blue-400 hover:bg-blue-500 hover:text-white disabled:opacity-50'
+                      : 'border-blue-600 text-blue-600 hover:bg-blue-600 hover:text-white disabled:opacity-50'
+                      }`}
+                  >
+                    <RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+                    {isRefreshing ? 'Refreshing...' : 'Refresh All'}
+                  </button>
+                </div>
               </div>
             </div>
 
@@ -845,7 +847,7 @@ const ManagerPage: React.FC = () => {
                           <div>
                             <div className={`text-xs font-bold uppercase mb-1 ${isDark ? 'text-white/60' : 'text-slate-600'
                               }`}>
-                              Transfers
+                              Transfers Made
                             </div>
                             <div className={`text-xl font-black ${isDark ? 'text-white' : 'text-slate-900'
                               }`}>
