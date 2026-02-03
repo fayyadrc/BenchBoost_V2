@@ -48,10 +48,12 @@ if ! python -c 'import fastapi, uvicorn, langchain' >/dev/null 2>&1; then
   fi
 fi
 
-# 4. Start FastAPI middleware API (proxied by Vite) in background
+# 4. Start FastAPI backend API (proxied by Vite) in background
 PORT=${PORT:-8000}
 echo "Starting backend API on port ${PORT}..."
-uvicorn backend.middleware.api:app --host 0.0.0.0 --port "${PORT}" --reload &
+# Use the new unified entry point (backend.main)
+# UVICORN_RELOAD=true enables auto-reload during development
+UVICORN_RELOAD=true python -m backend.main &
 BACKEND_PID=$!
 echo "Backend PID: ${BACKEND_PID}"
 
