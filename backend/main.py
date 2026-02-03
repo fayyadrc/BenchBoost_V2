@@ -14,12 +14,11 @@ from contextlib import asynccontextmanager
 from dotenv import load_dotenv
 
 from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
 
-# Import the FastAPI app from middleware
+# Import the FastAPI app factory from middleware
 from backend.middleware.api import create_app
-from backend.data.cache import load_core_game_data, get_cache_stats
+from backend.data import cache
 from backend.scheduler import start_scheduler, stop_scheduler, warm_cache_on_startup
 
 # Configure logging
@@ -52,7 +51,7 @@ def initialize_cache():
 
     try:
         warm_cache_on_startup()
-        stats = get_cache_stats()
+        stats = cache.get_cache_stats()
         logger.info(f"✅ Cache initialized: {stats.get('cache_size')} entries loaded")
         logger.info(f"   Hit rate: {stats.get('hit_rate_percent', 0)}%")
     except Exception as e:
@@ -81,43 +80,40 @@ def shutdown_scheduler():
         pass
 
 
-def create_lifespan_app():
-    """Create FastAPI app with lifespan events for proper startup/shutdown."""
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Handle startup and shutdown events."""
+    # Startup
+    logger.info("Starting up FPL Chatbot API...")
+    initialize_cache()
+    initialize_scheduler()
 
-    @asynccontextmanager
-    async def lifespan(app: FastAPI):
-        """Handle startup and shutdown events."""
-        # Startup
-        logger.info("Starting up FPL Chatbot API...")
-        initialize_cache()
-        initialize_scheduler()
+    # Log final cache stats
+    final_stats = cache.get_cache_stats()
+    logger.info(f"Startup complete: {final_stats.get('cache_size')} entries in cache")
 
-        # Log final cache stats
-        final_stats = get_cache_stats()
-        logger.info(
-            f"Startup complete: {final_stats.get('cache_size')} entries in cache"
-        )
+    yield
 
-        yield
+    # Shutdown
+    logger.info("Shutting down FPL Chatbot API...")
+    shutdown_scheduler()
 
-        # Shutdown
-        logger.info("Shutting down FPL Chatbot API...")
-        shutdown_scheduler()
+    # Show final cache stats
+    final_stats = cache.get_cache_stats()
+    logger.info(
+        f"Final cache stats: {final_stats.get('hit_rate_percent')}% hit rate, "
+        f"{final_stats.get('total_requests')} total requests"
+    )
 
-        # Show final cache stats
-        final_stats = get_cache_stats()
-        logger.info(
-            f"Final cache stats: {final_stats.get('hit_rate_percent')}% hit rate, "
-            f"{final_stats.get('total_requests')} total requests"
-        )
 
-    return create_app(lifespan=lifespan)
+# Create the FastAPI app at module level (required for reload to work)
+# This must be done after imports but before main()
+validate_environment()
+app = create_app(lifespan=lifespan)
 
 
 def main():
-    """Main entry point - validates env, initializes services, and starts Uvicorn."""
-    validate_environment()
-
+    """Main entry point - starts Uvicorn with the pre-created app."""
     # Get configuration from environment
     host = os.getenv("HOST", "0.0.0.0")
     port = int(os.getenv("PORT", "8000"))
@@ -126,11 +122,11 @@ def main():
     logger.info(f"Starting Uvicorn server on {host}:{port}")
     logger.info(f"Reload mode: {'enabled' if reload else 'disabled'}")
 
-    # Create the app with lifespan events
-    app = create_lifespan_app()
-
-    # Start Uvicorn with the app
-    uvicorn.run(app, host=host, port=port, reload=reload, log_level="info")
+    # Start Uvicorn with import string to enable reload
+    # When reload is enabled, uvicorn will reimport the module on changes
+    uvicorn.run(
+        "backend.main:app", host=host, port=port, reload=reload, log_level="info"
+    )
 
 
 if __name__ == "__main__":
