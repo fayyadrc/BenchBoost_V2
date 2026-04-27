@@ -1,55 +1,161 @@
-# BenchBoost_V2
-Enhanced, better planned FPL assistant
+# BenchBoost
 
-Codebase Review & Improvements
+> An AI-powered Fantasy Premier League assistant that gives you real-time insights, squad analysis, and personalised transfer advice — all through a conversational interface.
 
-1. Backend Architecture (backend/)
+---
 
-Current State:
-middleware/api.py is the actual API entry point, while main.py appears to be a legacy CLI or divergent entry point.
-Blocking Operations: The agent and tools are synchronous. api.py wraps them in asyncio.to_thread to prevent blocking the event loop.
-Tooling: agent/tools.py has a comprehensive suite of tools, but they are all synchronous, which limits concurrency when fetching data from external APIs or the DB.
-Improvements:
-Unified Entry Point: Refactor backend/main.py to be the single entry point that launches the FastAPI app (Uvicorn), unifying the startup logic (cache warming, scheduler) currently duplicated or split between main.py and middleware/api.py.
-Async Tools: Convert I/O-bound tools (DB queries, API calls, scraping) to async def. This allows you to use agent.ainvoke() and native await, significantly improving throughput under load compared to threading.
-Agent Dependency: The agent is currently cached in a global variable (_AGENT_CACHE) inside api.py. In FastAPI, it's better to use a Lifespan Manager or Dependency Injection (Depends) to manage the agent's lifecycle and configuration.
-2. Data Pipeline & Ingestion (ingest.sh, backend/database/)
+## Overview
 
-Current State:
-ingest.sh is a robust wrapper around backend/database/ingest.py.
-Data is loaded into MongoDB, but api.py also relies heavily on an in-memory cache module (backend/data/cache.py) for "core game data".
-Improvements:
-Hybrid Caching Strategy: The reliance on in-memory cache for core data (players, teams) is good for speed but makes scaling (multiple workers) hard. Consider checking if Redis or purely MongoDB with caching headers is a viable alternative for distributed deployments, or stick to memory if single-instance is sufficient.
-Error Handling in Ingest: Ensure ingest.py has retry logic for network requests (FPL API is known to be flaky/rate-limited).
-3. Agent & AI Logic (backend/agent/)
+BenchBoost V2 is a full-stack RAG (Retrieval-Augmented Generation) chatbot designed specifically for FPL managers. Instead of manually digging through stats sites, you simply ask questions in plain English and get intelligent, data-driven answers about players, gameweeks, your squad, and the broader FPL landscape.
 
-Current State:
-Uses gemini-2.5-flash (hardcoded in agent.py).
-Tools are extensive, covering stats, rules, and live data.
-Memory is persisted to MongoDB (save_chat_history), which is excellent.
-Improvements:
-Configurable Model: Move the model name to .env (e.g., LLM_MODEL_NAME=gemini-2.5-flash) so you can easily switch to pro or updated versions without code changes.
-System Prompt Management: prompt.py likely contains the system prompt. Ensure this is versioned or easily editable without redeploying logic.
-4. Frontend (frontend/src/)
+**Example queries:**
+- *"How many points does Salah have this gameweek?"*
+- *"Should I take a hit to bring in Haaland?"*
+- *"What are the latest injury updates for my squad?"*
+- *"Who are the best differential picks for the next two gameweeks?"*
 
-Current State:
-Modern stack (React 19, Tailwind 4).
-Clean separation of components, hooks, pages.
-Improvements:
-API Client: If you are using raw fetch calls in components or hooks, consider generating a typed API client (e.g., using openapi-typescript-codegen against the FastAPI openapi.json) or using TanStack Query (React Query) for caching, loading states, and automatic retries.
-Environment Variables: Ensure VITE_API_URL is used for fetch requests to allow easy switching between local dev and production backends.
-5. Security & Ops
+---
 
-Current State:
-api.py handles CORS dynamically based on .env, which is good practice.
-Secrets (API keys) are loaded from .env.
-Improvements:
-Rate Limiting: The API currently has no rate limiting. If exposed publicly, playwright scraping tools could be abused. Add slowapi or similar middleware to limit requests per IP.
-Input Validation: Ensure user inputs to the agent are sanitized or limited in length to prevent context window exhaustion attacks.
-Summary of Recommended Actions
+## Features
 
-Refactor main.py & api.py: Merge startup logic and define a clear application entry point.
-Async Conversion: Make tools and agent invocation asynchronous for better performance.
-Config Management: Externalize LLM_MODEL_NAME and other hardcoded constants.
-Frontend API Layer: Adopt React Query or a typed client for robust data fetching.
-Rate Limiting: Protect your expensive scraping/inference endpoints.
+- **Conversational AI** — Powered by Google Gemini 2.5 Flash via LangChain, enabling natural multi-turn dialogue
+- **Live FPL Data** — Pulls real-time player stats, gameweek live points, and fixture data directly from the official FPL API and LiveFPL
+- **Squad-Aware** — Enter your FPL Manager ID and the assistant analyses your personal team, transfers, and captain choices
+- **Knowledge Base (RAG)** — MongoDB Atlas Vector Search lets the assistant answer qualitative questions about FPL rules, news, and strategy
+- **Persistent Chat History** — Sessions are stored in MongoDB so your conversation context is never lost
+- **Modern Frontend** — Responsive React 19 SPA with dark/light theme support and session management
+
+---
+
+
+### Data Flow
+
+```
+User Query
+    │
+    ▼
+React Frontend  ──────────────────────────────────────────────────────►  Display Response
+    │                                                                           ▲
+    │  POST /api/query (+ manager_id)                                           │
+    ▼                                                                           │
+FastAPI (middleware/api.py)                                                     │
+    │  • Fetches chat history from MongoDB                                      │
+    │  • Prepends Manager ID to query context                                   │
+    ▼                                                                           │
+LangChain AgentExecutor (agent/agent.py)                                        │
+    │  • Gemini 2.5 Flash reasons over tools                                    │
+    ▼                                                                           │
+Tools (agent/tools.py)                                                          │
+    │  • In-memory cache           • MongoDB Vector Store (RAG)                 │
+    │  • Official FPL API          • LiveFPL API                                │
+    ▼                                                                           │
+Synthesised Response  ──────────────────────────────────────────────────────────┘
+    (saved to MongoDB)
+```
+
+---
+
+## Getting Started
+
+### Prerequisites
+
+- Python 3.11+
+- Node.js 18+
+- MongoDB Atlas account (with Vector Search enabled)
+- Google AI API key (Gemini)
+
+### Backend Setup
+
+```bash
+# Clone the repository
+git clone https://github.com/your-username/benchboost-v2.git
+cd benchboost-v2/backend
+
+# Create and activate a virtual environment
+python -m venv venv
+source venv/bin/activate  # Windows: venv\Scripts\activate
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Configure environment variables
+cp .env.example .env
+# Fill in your GOOGLE_API_KEY, MONGODB_URI, and other secrets
+
+# Start the server
+python main.py
+```
+
+The API will be available at `http://localhost:8000`.
+
+### Frontend Setup
+
+```bash
+cd ../frontend
+
+# Install dependencies
+npm install
+
+# Start the development server
+npm run dev
+```
+
+The app will be available at `http://localhost:5173`.
+
+---
+
+## Environment Variables
+
+| Variable | Description |
+|---|---|
+| `GOOGLE_API_KEY` | Gemini API key from Google AI Studio |
+| `MONGODB_URI` | MongoDB Atlas connection string |
+| `MONGODB_DB_NAME` | Name of the database to use |
+| `FPL_API_BASE_URL` | Base URL for the FPL API (default: `https://fantasy.premierleague.com/api`) |
+
+---
+
+## 🤖 How the Agent Works
+
+1. **Session Retrieval** — On each request, the backend fetches the existing chat history from MongoDB to maintain conversational context.
+2. **Context Injection** — If a Manager ID is provided, it is silently prepended to the query (`[User's FPL Team ID: XXXXX]`), allowing the LLM to pass it to manager-specific tools automatically.
+3. **Tool Selection** — The LangChain agent inspects the user's intent and dispatches to the most relevant tool(s) from `tools.py` (e.g., `get_player_stats`, `get_manager_squad`, `search_knowledge_base`).
+4. **Data Hydration** — Squad data is enriched with live gameweek stats, including captain point multipliers.
+5. **Synthesis** — Gemini processes all tool outputs and generates a natural language response, which is persisted to MongoDB.
+
+---
+
+## Tech Stack
+
+| Layer | Technology |
+|---|---|
+| **Frontend** | React 19, Vite, Tailwind CSS 4 |
+| **Backend** | FastAPI, Python 3.11 |
+| **AI / LLM** | Google Gemini 2.5 Flash, LangChain |
+| **Database** | MongoDB Atlas (chat history + vector store) |
+| **Data Sources** | Official FPL API, LiveFPL |
+
+---
+
+## Known Issues & Limitations
+
+- **Manager Points Calculation** — Transfer hit costs are not yet subtracted from displayed gameweek points. Vice-captain logic is not fully implemented when the captain records 0 minutes.
+- **Synchronous Tools** — Underlying API calls use `requests` (synchronous), which limits concurrent throughput. Planned migration to `httpx` with async tools.
+- **In-Memory Agent Cache** — Agent instances are cached per session in memory. Long-running deployments with many unique sessions may see increased memory usage over time.
+
+---
+
+## Next Steps
+
+- [ ] Fix GW points calculation (subtract transfer hit costs)
+- [ ] Implement full vice-captain fallback logic
+- [ ] Migrate API clients from `requests` to `httpx` for async support
+- [ ] Add rate limiting middleware
+- [ ] Migrate to `@tanstack/react-query` for frontend data fetching
+- [ ] Consolidate `api_client.py` and `manager_data.py` into a unified FPL service layer
+
+---
+
+## 📄 License
+
+This project is licensed under the MIT License. See [LICENSE](LICENSE) for details.
