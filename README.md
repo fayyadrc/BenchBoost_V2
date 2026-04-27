@@ -6,7 +6,7 @@
 
 ## Overview
 
-BenchBoost V2 is a full-stack RAG (Retrieval-Augmented Generation) chatbot designed specifically for FPL managers. Instead of manually digging through stats sites, you simply ask questions in plain English and get intelligent, data-driven answers about players, gameweeks, your squad, and the broader FPL landscape.
+BenchBoost is a full-stack RAG (Retrieval-Augmented Generation) chatbot designed specifically for FPL managers. Instead of manually digging through stats sites, you simply ask questions in plain English and get intelligent, data-driven answers about players, gameweeks, your squad, and the broader FPL landscape.
 
 **Example queries:**
 - *"How many points does Salah have this gameweek?"*
@@ -68,7 +68,7 @@ Synthesised Response  ───────────────────�
 
 ```bash
 # Clone the repository
-git clone https://github.com/your-username/benchboost-v2.git
+git clone https://github.com/fayyadrc/benchboost-v2.git
 cd benchboost-v2/backend
 
 # Create and activate a virtual environment
